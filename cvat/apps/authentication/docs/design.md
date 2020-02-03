@@ -209,11 +209,22 @@ g = _,_
 e = some(where (p.eft == allow))
 
 [matchers]
-m = g(r.sub, p.sub) && objectMatch(r.obj, p.obj) && regexMatch(r.act, p.act) && match_scope(r.sub, r.obj, p.scope)
+m = match_role(r.sub, r.obj, p.sub) && \
+    match_scope(r.sub, r.obj, p.scope) && \
+    match_object(r.obj, p.obj) && \
+    match_action(r.act, p.act)
 ```
 
-Here `match_action`, `match_object`, and `match_scope` functions which should
+Here `match_role`, `match_action`, `match_object`, and `match_scope` functions which should
 be defined somewhere in our code.
+
+- match_role: (r.sub, r.obj) -> p.sub. In common case the role can be defined by
+the object as well (using rules).
+- match_scope: (r.sub, r.obj) -> p.scope. In case of `PUBLIC` or `PRIVATE` scope it
+is enough to use only the object. But to determine `LINKED` scope it is necessary
+to know the subject as well.
+- match_object: r.obj -> p.obj (regexp match)
+- match_action: r.act -> p.act (regexp match)
 
 Polices for casbin should be provided using [an adapter](https://casbin.org/docs/en/adapters).
 Roles and rules will be loaded from the adapter.
