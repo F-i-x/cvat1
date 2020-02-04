@@ -115,6 +115,36 @@ Add roles for groups and users in context of the whole app (object is None).
 }
 ```
 
+### List of actions
+
+- `POST /api/v1/auth/validator`
+
+To hide some buttons it is necessary to provide information
+about rights for (sub, obj) using REST API.
+
+```json
+[
+    {
+        "subject": "groups/{id}",
+        "object": "tasks/{id}",
+        "
+    },
+]
+```
+
+```json
+{
+    "subject": "groups/{id}",
+}
+```
+
+Reply
+
+```json
+{
+}
+```
+
 ## Admin panel
 
 It should be possible to manage roles and rules using admin panel.
