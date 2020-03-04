@@ -61,6 +61,7 @@ services:
 
   cvat_ui:
     container_name: cvat_ui
+    image: cvat_ui
     restart: always
     build:
       context: .
@@ -93,6 +94,20 @@ services:
       - ./cvat_proxy/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./cvat_proxy/conf.d/cvat.conf.template:/etc/nginx/conf.d/cvat.conf.template:ro
     command: /bin/sh -c "envsubst '$$CVAT_HOST' < /etc/nginx/conf.d/cvat.conf.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"
+
+  cvat_auth:
+    container_name: auth
+    image: jboss/keycloak:4.5.0.Final
+    command: ["-Djboss.socket.binding.port-offset=100"]
+    environment:
+      - KEYCLOAK_USER=admin
+      - KEYCLOAK_PASSWORD=admin
+    expose:
+      - "8180"
+    networks:
+      default:
+        aliases:
+          - auth
 
 volumes:
   cvat_db:
