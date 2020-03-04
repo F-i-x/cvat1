@@ -1,3 +1,7 @@
+// Copyright (C) 2020 Intel Corporation
+//
+// SPDX-License-Identifier: MIT
+
 import './styles.scss';
 import React from 'react';
 
@@ -8,6 +12,7 @@ import {
 } from 'antd';
 
 import AnnotationTopBarContainer from 'containers/annotation-page/top-bar/top-bar';
+import StatisticsModalContainer from 'containers/annotation-page/top-bar/statistics-modal';
 import StandardWorkspaceComponent from './standard-workspace/standard-workspace';
 
 interface Props {
@@ -16,12 +21,14 @@ interface Props {
     getJob(): void;
 }
 
+
 export default function AnnotationPageComponent(props: Props): JSX.Element {
     const {
         job,
         fetching,
         getJob,
     } = props;
+
 
     if (job === null) {
         if (!fetching) {
@@ -46,6 +53,7 @@ export default function AnnotationPageComponent(props: Props): JSX.Element {
         <Layout className='cvat-annotation-page'>
             <AnnotationTopBarContainer />
             <StandardWorkspaceComponent />
+            <StatisticsModalContainer />
         </Layout>
     );
 }

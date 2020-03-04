@@ -1,9 +1,13 @@
+// Copyright (C) 2020 Intel Corporation
+//
+// SPDX-License-Identifier: MIT
+
 import React from 'react';
 
+import { SelectValue } from 'antd/lib/select';
 import { StatesOrdering } from 'reducers/interfaces';
-
 import ObjectItemContainer from 'containers/annotation-page/standard-workspace/objects-side-bar/object-item';
-import Header from './objects-list-header';
+import ObjectListHeader from './objects-list-header';
 
 
 interface Props {
@@ -13,7 +17,10 @@ interface Props {
     statesCollapsed: boolean;
     statesOrdering: StatesOrdering;
     sortedStatesID: number[];
+    annotationsFilters: string[];
+    annotationsFiltersHistory: string[];
     changeStatesOrdering(value: StatesOrdering): void;
+    changeAnnotationsFilters(value: SelectValue): void;
     lockAllStates(): void;
     unlockAllStates(): void;
     collapseAllStates(): void;
@@ -22,7 +29,7 @@ interface Props {
     showAllStates(): void;
 }
 
-const ObjectListComponent = React.memo((props: Props): JSX.Element => {
+function ObjectListComponent(props: Props): JSX.Element {
     const {
         listHeight,
         statesHidden,
@@ -30,7 +37,10 @@ const ObjectListComponent = React.memo((props: Props): JSX.Element => {
         statesCollapsed,
         statesOrdering,
         sortedStatesID,
+        annotationsFilters,
+        annotationsFiltersHistory,
         changeStatesOrdering,
+        changeAnnotationsFilters,
         lockAllStates,
         unlockAllStates,
         collapseAllStates,
@@ -41,18 +51,21 @@ const ObjectListComponent = React.memo((props: Props): JSX.Element => {
 
     return (
         <div style={{ height: listHeight }}>
-            <Header
+            <ObjectListHeader
                 statesHidden={statesHidden}
                 statesLocked={statesLocked}
                 statesCollapsed={statesCollapsed}
                 statesOrdering={statesOrdering}
+                annotationsFilters={annotationsFilters}
                 changeStatesOrdering={changeStatesOrdering}
+                changeAnnotationsFilters={changeAnnotationsFilters}
                 lockAllStates={lockAllStates}
                 unlockAllStates={unlockAllStates}
                 collapseAllStates={collapseAllStates}
                 expandAllStates={expandAllStates}
                 hideAllStates={hideAllStates}
                 showAllStates={showAllStates}
+                annotationsFiltersHistory={annotationsFiltersHistory}
             />
             <div className='cvat-objects-sidebar-states-list'>
                 { sortedStatesID.map((id: number): JSX.Element => (
@@ -61,6 +74,6 @@ const ObjectListComponent = React.memo((props: Props): JSX.Element => {
             </div>
         </div>
     );
-});
+}
 
-export default ObjectListComponent;
+export default React.memo(ObjectListComponent);

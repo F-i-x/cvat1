@@ -1,11 +1,19 @@
+// Copyright (C) 2020 Intel Corporation
+//
+// SPDX-License-Identifier: MIT
+
 import React from 'react';
 
 import {
     Col,
     Icon,
     Modal,
+    Button,
     Timeline,
+    Dropdown,
 } from 'antd';
+
+import AnnotationMenuContainer from 'containers/annotation-page/top-bar/annotation-menu';
 
 import {
     MainMenuIcon,
@@ -17,32 +25,41 @@ import {
 interface Props {
     saving: boolean;
     savingStatuses: string[];
+    undoAction?: string;
+    redoAction?: string;
     onSaveAnnotation(): void;
+    onUndoClick(): void;
+    onRedoClick(): void;
 }
 
-const LeftGroup = React.memo((props: Props): JSX.Element => {
+function LeftGroup(props: Props): JSX.Element {
     const {
         saving,
         savingStatuses,
+        undoAction,
+        redoAction,
         onSaveAnnotation,
+        onUndoClick,
+        onRedoClick,
     } = props;
 
     return (
         <Col className='cvat-annotation-header-left-group'>
-            <div className='cvat-annotation-header-button'>
-                <Icon component={MainMenuIcon} />
-                <span>Menu</span>
-            </div>
-            <div
+            <Dropdown overlay={<AnnotationMenuContainer />}>
+                <Button type='link' className='cvat-annotation-header-button'>
+                    <Icon component={MainMenuIcon} />
+                    Menu
+                </Button>
+            </Dropdown>
+            <Button
+                onClick={saving ? undefined : onSaveAnnotation}
+                type='link'
                 className={saving
                     ? 'cvat-annotation-disabled-header-button'
-                    : 'cvat-annotation-header-button'
-                }
+                    : 'cvat-annotation-header-button'}
             >
-                <Icon component={SaveIcon} onClick={onSaveAnnotation} />
-                <span>
-                    { saving ? 'Saving...' : 'Save' }
-                </span>
+                <Icon component={SaveIcon} />
+                { saving ? 'Saving...' : 'Save' }
                 <Modal
                     title='Saving changes on the server'
                     visible={saving}
@@ -60,17 +77,31 @@ const LeftGroup = React.memo((props: Props): JSX.Element => {
                         }
                     </Timeline>
                 </Modal>
-            </div>
-            <div className='cvat-annotation-header-button'>
+            </Button>
+            <Button
+                title={undoAction}
+                disabled={!undoAction}
+                style={{ pointerEvents: undoAction ? 'initial' : 'none', opacity: undoAction ? 1 : 0.5 }}
+                type='link'
+                className='cvat-annotation-header-button'
+                onClick={onUndoClick}
+            >
                 <Icon component={UndoIcon} />
                 <span>Undo</span>
-            </div>
-            <div className='cvat-annotation-header-button'>
+            </Button>
+            <Button
+                title={redoAction}
+                disabled={!redoAction}
+                style={{ pointerEvents: redoAction ? 'initial' : 'none', opacity: redoAction ? 1 : 0.5 }}
+                type='link'
+                className='cvat-annotation-header-button'
+                onClick={onRedoClick}
+            >
                 <Icon component={RedoIcon} />
-                <span>Redo</span>
-            </div>
+                Redo
+            </Button>
         </Col>
     );
-});
+}
 
-export default LeftGroup;
+export default React.memo(LeftGroup);

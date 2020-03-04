@@ -1,9 +1,17 @@
+// Copyright (C) 2020 Intel Corporation
+//
+// SPDX-License-Identifier: MIT
+
 import {
     Canvas,
-    Rotation,
+    CanvasMode,
+    CanvasVersion,
+    RectDrawingMethod,
 } from '../../cvat-canvas/src/typescript/canvas';
 
 export {
     Canvas,
-    Rotation,
+    CanvasMode,
+    CanvasVersion,
+    RectDrawingMethod,
 };

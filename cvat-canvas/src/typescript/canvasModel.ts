@@ -1,10 +1,8 @@
-/*
-* Copyright (C) 2019 Intel Corporation
-* SPDX-License-Identifier: MIT
-*/
+// Copyright (C) 2019-2020 Intel Corporation
+//
+// SPDX-License-Identifier: MIT
 
 import { MasterImpl } from './master';
-
 
 export interface Size {
     width: number;
@@ -37,9 +35,15 @@ export interface ActiveElement {
     attributeID: number | null;
 }
 
+export enum RectDrawingMethod {
+    CLASSIC = 'By 2 points',
+    EXTREME_POINTS = 'By 4 points'
+}
+
 export interface DrawData {
     enabled: boolean;
     shapeType?: string;
+    rectDrawingMethod?: RectDrawingMethod;
     numberOfPoints?: number;
     initialState?: any;
     crosshair?: boolean;
@@ -68,17 +72,13 @@ export enum FrameZoom {
     MAX = 10,
 }
 
-export enum Rotation {
-    ANTICLOCKWISE90,
-    CLOCKWISE90,
-}
-
 export enum UpdateReasons {
     IMAGE_CHANGED = 'image_changed',
     IMAGE_ZOOMED = 'image_zoomed',
     IMAGE_FITTED = 'image_fitted',
     IMAGE_MOVED = 'image_moved',
     GRID_UPDATED = 'grid_updated',
+    SET_Z_LAYER = 'set_z_layer',
 
     OBJECTS_UPDATED = 'objects_updated',
     SHAPE_ACTIVATED = 'shape_activated',
@@ -110,8 +110,9 @@ export enum Mode {
 }
 
 export interface CanvasModel {
-    readonly image: string;
+    readonly image: HTMLImageElement | null;
     readonly objects: any[];
+    readonly zLayer: number | null;
     readonly gridSize: Size;
     readonly focusData: FocusData;
     readonly activeElement: ActiveElement;
@@ -123,12 +124,13 @@ export interface CanvasModel {
     geometry: Geometry;
     mode: Mode;
 
+    setZLayer(zLayer: number | null): void;
     zoom(x: number, y: number, direction: number): void;
     move(topOffset: number, leftOffset: number): void;
 
     setup(frameData: any, objectStates: any[]): void;
-    activate(clientID: number, attributeID: number | null): void;
-    rotate(rotation: Rotation, remember: boolean): void;
+    activate(clientID: number | null, attributeID: number | null): void;
+    rotate(rotationAngle: number): void;
     focus(clientID: number, padding: number): void;
     fit(): void;
     grid(stepX: number, stepY: number): void;
@@ -151,7 +153,7 @@ export class CanvasModelImpl extends MasterImpl implements CanvasModel {
         activeElement: ActiveElement;
         angle: number;
         canvasSize: Size;
-        image: string;
+        image: HTMLImageElement | null;
         imageID: number | null;
         imageOffset: number;
         imageSize: Size;
@@ -159,9 +161,9 @@ export class CanvasModelImpl extends MasterImpl implements CanvasModel {
         gridSize: Size;
         left: number;
         objects: any[];
-        rememberAngle: boolean;
         scale: number;
         top: number;
+        zLayer: number | null;
         drawData: DrawData;
         mergeData: MergeData;
         groupData: GroupData;
@@ -183,7 +185,7 @@ export class CanvasModelImpl extends MasterImpl implements CanvasModel {
                 height: 0,
                 width: 0,
             },
-            image: '',
+            image: null,
             imageID: null,
             imageOffset: 0,
             imageSize: {
@@ -200,9 +202,9 @@ export class CanvasModelImpl extends MasterImpl implements CanvasModel {
             },
             left: 0,
             objects: [],
-            rememberAngle: false,
             scale: 1,
             top: 0,
+            zLayer: null,
             drawData: {
                 enabled: false,
                 initialState: null,
@@ -219,6 +221,11 @@ export class CanvasModelImpl extends MasterImpl implements CanvasModel {
             selected: null,
             mode: Mode.IDLE,
         };
+    }
+
+    public setZLayer(zLayer: number | null): void {
+        this.data.zLayer = zLayer;
+        this.notify(UpdateReasons.SET_Z_LAYER);
     }
 
     public zoom(x: number, y: number, direction: number): void {
@@ -291,21 +298,28 @@ export class CanvasModelImpl extends MasterImpl implements CanvasModel {
     }
 
     public setup(frameData: any, objectStates: any[]): void {
+        if (frameData.number === this.data.imageID) {
+            this.data.objects = objectStates;
+            this.notify(UpdateReasons.OBJECTS_UPDATED);
+            return;
+        }
+
+        this.data.imageID = frameData.number;
         frameData.data(
             (): void => {
-                this.data.image = '';
+                this.data.image = null;
                 this.notify(UpdateReasons.IMAGE_CHANGED);
             },
-        ).then((data: string): void => {
+        ).then((data: HTMLImageElement): void => {
+            if (frameData.number !== this.data.imageID) {
+                // already another image
+                return;
+            }
+
             this.data.imageSize = {
                 height: (frameData.height as number),
                 width: (frameData.width as number),
             };
-
-            if (this.data.imageID !== frameData.number && !this.data.rememberAngle) {
-                this.data.angle = 0;
-            }
-            this.data.imageID = frameData.number;
 
             this.data.image = data;
             this.notify(UpdateReasons.IMAGE_CHANGED);
@@ -316,8 +330,8 @@ export class CanvasModelImpl extends MasterImpl implements CanvasModel {
         });
     }
 
-    public activate(clientID: number, attributeID: number | null): void {
-        if (this.data.mode !== Mode.IDLE) {
+    public activate(clientID: number | null, attributeID: number | null): void {
+        if (this.data.mode !== Mode.IDLE && clientID !== null) {
             // Exception or just return?
             throw Error(`Canvas is busy. Action: ${this.data.mode}`);
         }
@@ -330,16 +344,11 @@ export class CanvasModelImpl extends MasterImpl implements CanvasModel {
         this.notify(UpdateReasons.SHAPE_ACTIVATED);
     }
 
-    public rotate(rotation: Rotation, remember: boolean = false): void {
-        if (rotation === Rotation.CLOCKWISE90) {
-            this.data.angle += 90;
-        } else {
-            this.data.angle -= 90;
+    public rotate(rotationAngle: number): void {
+        if (this.data.angle !== rotationAngle) {
+            this.data.angle = (360 + Math.floor((rotationAngle) / 90) * 90) % 360;
+            this.fit();
         }
-
-        this.data.angle %= 360;
-        this.data.rememberAngle = remember;
-        this.fit();
     }
 
     public focus(clientID: number, padding: number): void {
@@ -503,11 +512,20 @@ export class CanvasModelImpl extends MasterImpl implements CanvasModel {
         ));
     }
 
-    public get image(): string {
+    public get zLayer(): number | null {
+        return this.data.zLayer;
+    }
+
+    public get image(): HTMLImageElement | null {
         return this.data.image;
     }
 
     public get objects(): any[] {
+        if (this.data.zLayer !== null) {
+            return this.data.objects
+                .filter((object: any): boolean => object.zOrder <= this.data.zLayer);
+        }
+
         return this.data.objects;
     }
 

@@ -1,24 +1,28 @@
+// Copyright (C) 2020 Intel Corporation
+//
+// SPDX-License-Identifier: MIT
+
 import React from 'react';
 
 import {
     Row,
     Col,
     Icon,
-    Input,
     Select,
 } from 'antd';
 
 import Text from 'antd/lib/typography/Text';
+import { SelectValue } from 'antd/lib/select';
 
 import { StatesOrdering } from 'reducers/interfaces';
 
 
-interface StatesOrderingSelectorProps {
+interface StatesOrderingSelectorComponentProps {
     statesOrdering: StatesOrdering;
     changeStatesOrdering(value: StatesOrdering): void;
 }
 
-const StatesOrderingSelector = React.memo((props: StatesOrderingSelectorProps): JSX.Element => {
+function StatesOrderingSelectorComponent(props: StatesOrderingSelectorComponentProps): JSX.Element {
     const {
         statesOrdering,
         changeStatesOrdering,
@@ -49,14 +53,19 @@ const StatesOrderingSelector = React.memo((props: StatesOrderingSelectorProps): 
             </Select>
         </Col>
     );
-});
+}
+
+const StatesOrderingSelector = React.memo(StatesOrderingSelectorComponent);
 
 interface Props {
     statesHidden: boolean;
     statesLocked: boolean;
     statesCollapsed: boolean;
     statesOrdering: StatesOrdering;
+    annotationsFilters: string[];
+    annotationsFiltersHistory: string[];
     changeStatesOrdering(value: StatesOrdering): void;
+    changeAnnotationsFilters(value: SelectValue): void;
     lockAllStates(): void;
     unlockAllStates(): void;
     collapseAllStates(): void;
@@ -65,8 +74,10 @@ interface Props {
     showAllStates(): void;
 }
 
-const Header = React.memo((props: Props): JSX.Element => {
+function ObjectListHeader(props: Props): JSX.Element {
     const {
+        annotationsFilters,
+        annotationsFiltersHistory,
         statesHidden,
         statesLocked,
         statesCollapsed,
@@ -78,36 +89,47 @@ const Header = React.memo((props: Props): JSX.Element => {
         expandAllStates,
         hideAllStates,
         showAllStates,
+        changeAnnotationsFilters,
     } = props;
 
     return (
         <div className='cvat-objects-sidebar-states-header'>
             <Row>
                 <Col>
-                    <Input
-                        placeholder='Filter e.g. car[attr/model="mazda"]'
-                        prefix={<Icon type='filter' />}
-                    />
+                    <Select
+                        allowClear
+                        value={annotationsFilters}
+                        mode='tags'
+                        style={{ width: '100%' }}
+                        placeholder={(
+                            <>
+                                <Icon type='filter' />
+                                <span style={{ marginLeft: 5 }}>Annotations filter</span>
+                            </>
+                        )}
+                        onChange={changeAnnotationsFilters}
+                    >
+                        {annotationsFiltersHistory.map((element: string): JSX.Element => (
+                            <Select.Option key={element} value={element}>{element}</Select.Option>
+                        ))}
+                    </Select>
                 </Col>
             </Row>
             <Row type='flex' justify='space-between' align='middle'>
                 <Col span={2}>
                     { statesLocked
                         ? <Icon type='lock' onClick={unlockAllStates} />
-                        : <Icon type='unlock' onClick={lockAllStates} />
-                    }
+                        : <Icon type='unlock' onClick={lockAllStates} />}
                 </Col>
                 <Col span={2}>
                     { statesHidden
                         ? <Icon type='eye-invisible' onClick={showAllStates} />
-                        : <Icon type='eye' onClick={hideAllStates} />
-                    }
+                        : <Icon type='eye' onClick={hideAllStates} />}
                 </Col>
                 <Col span={2}>
                     { statesCollapsed
                         ? <Icon type='caret-down' onClick={expandAllStates} />
-                        : <Icon type='caret-up' onClick={collapseAllStates} />
-                    }
+                        : <Icon type='caret-up' onClick={collapseAllStates} />}
                 </Col>
                 <StatesOrderingSelector
                     statesOrdering={statesOrdering}
@@ -116,6 +138,6 @@ const Header = React.memo((props: Props): JSX.Element => {
             </Row>
         </div>
     );
-});
+}
 
-export default Header;
+export default React.memo(ObjectListHeader);

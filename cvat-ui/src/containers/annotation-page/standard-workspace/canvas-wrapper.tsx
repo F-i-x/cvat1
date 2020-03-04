@@ -1,3 +1,7 @@
+// Copyright (C) 2020 Intel Corporation
+//
+// SPDX-License-Identifier: MIT
+
 import React from 'react';
 import { connect } from 'react-redux';
 
@@ -12,13 +16,20 @@ import {
     mergeObjects,
     groupObjects,
     splitTrack,
+    editShape,
     updateAnnotationsAsync,
     createAnnotationsAsync,
     mergeAnnotationsAsync,
     groupAnnotationsAsync,
     splitAnnotationsAsync,
+    activateObject,
+    selectObjects,
+    updateCanvasContextMenu,
+    addZLayer,
+    switchZLayer,
 } from 'actions/annotation-actions';
 import {
+    ColorBy,
     GridColor,
     ObjectType,
     CombinedState,
@@ -30,15 +41,29 @@ interface StateToProps {
     sidebarCollapsed: boolean;
     canvasInstance: Canvas;
     jobInstance: any;
+    activatedStateID: number | null;
+    selectedStatesID: number[];
     annotations: any[];
     frameData: any;
+    frameAngle: number;
     frame: number;
+    opacity: number;
+    colorBy: ColorBy;
+    selectedOpacity: number;
+    blackBorders: boolean;
     grid: boolean;
     gridSize: number;
     gridColor: GridColor;
     gridOpacity: number;
     activeLabelID: number;
     activeObjectType: ObjectType;
+    brightnessLevel: number;
+    contrastLevel: number;
+    saturationLevel: number;
+    resetZoom: boolean;
+    minZLayer: number;
+    maxZLayer: number;
+    curZLayer: number;
 }
 
 interface DispatchToProps {
@@ -50,11 +75,17 @@ interface DispatchToProps {
     onMergeObjects: (enabled: boolean) => void;
     onGroupObjects: (enabled: boolean) => void;
     onSplitTrack: (enabled: boolean) => void;
+    onEditShape: (enabled: boolean) => void;
     onUpdateAnnotations(sessionInstance: any, frame: number, states: any[]): void;
     onCreateAnnotations(sessionInstance: any, frame: number, states: any[]): void;
     onMergeAnnotations(sessionInstance: any, frame: number, states: any[]): void;
     onGroupAnnotations(sessionInstance: any, frame: number, states: any[]): void;
     onSplitAnnotations(sessionInstance: any, frame: number, state: any): void;
+    onActivateObject: (activatedStateID: number | null) => void;
+    onSelectObjects: (selectedStatesID: number[]) => void;
+    onUpdateContextMenu(visible: boolean, left: number, top: number): void;
+    onAddZLayer(): void;
+    onSwitchZLayer(cur: number): void;
 }
 
 function mapStateToProps(state: CombinedState): StateToProps {
@@ -75,9 +106,17 @@ function mapStateToProps(state: CombinedState): StateToProps {
                     data: frameData,
                     number: frame,
                 },
+                frameAngles,
             },
             annotations: {
                 states: annotations,
+                activatedStateID,
+                selectedStatesID,
+                zLayer: {
+                    cur: curZLayer,
+                    min: minZLayer,
+                    max: maxZLayer,
+                },
             },
             sidebarCollapsed,
         },
@@ -87,6 +126,16 @@ function mapStateToProps(state: CombinedState): StateToProps {
                 gridSize,
                 gridColor,
                 gridOpacity,
+                brightnessLevel,
+                contrastLevel,
+                saturationLevel,
+                resetZoom,
+            },
+            shapes: {
+                opacity,
+                colorBy,
+                selectedOpacity,
+                blackBorders,
             },
         },
     } = state;
@@ -96,14 +145,28 @@ function mapStateToProps(state: CombinedState): StateToProps {
         canvasInstance,
         jobInstance,
         frameData,
+        frameAngle: frameAngles[frame - jobInstance.startFrame],
         frame,
+        activatedStateID,
+        selectedStatesID,
         annotations,
+        opacity,
+        colorBy,
+        selectedOpacity,
+        blackBorders,
         grid,
         gridSize,
         gridColor,
         gridOpacity,
         activeLabelID,
         activeObjectType,
+        brightnessLevel,
+        contrastLevel,
+        saturationLevel,
+        resetZoom,
+        curZLayer,
+        minZLayer,
+        maxZLayer,
     };
 }
 
@@ -133,6 +196,9 @@ function mapDispatchToProps(dispatch: any): DispatchToProps {
         onSplitTrack(enabled: boolean): void {
             dispatch(splitTrack(enabled));
         },
+        onEditShape(enabled: boolean): void {
+            dispatch(editShape(enabled));
+        },
         onUpdateAnnotations(sessionInstance: any, frame: number, states: any[]): void {
             dispatch(updateAnnotationsAsync(sessionInstance, frame, states));
         },
@@ -147,6 +213,25 @@ function mapDispatchToProps(dispatch: any): DispatchToProps {
         },
         onSplitAnnotations(sessionInstance: any, frame: number, state: any): void {
             dispatch(splitAnnotationsAsync(sessionInstance, frame, state));
+        },
+        onActivateObject(activatedStateID: number | null): void {
+            if (activatedStateID === null) {
+                dispatch(updateCanvasContextMenu(false, 0, 0));
+            }
+
+            dispatch(activateObject(activatedStateID));
+        },
+        onSelectObjects(selectedStatesID: number[]): void {
+            dispatch(selectObjects(selectedStatesID));
+        },
+        onUpdateContextMenu(visible: boolean, left: number, top: number): void {
+            dispatch(updateCanvasContextMenu(visible, left, top));
+        },
+        onAddZLayer(): void {
+            dispatch(addZLayer());
+        },
+        onSwitchZLayer(cur: number): void {
+            dispatch(switchZLayer(cur));
         },
     };
 }

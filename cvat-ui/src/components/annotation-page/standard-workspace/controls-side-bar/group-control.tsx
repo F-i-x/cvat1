@@ -1,3 +1,7 @@
+// Copyright (C) 2020 Intel Corporation
+//
+// SPDX-License-Identifier: MIT
+
 import React from 'react';
 
 import {
@@ -19,7 +23,7 @@ interface Props {
     groupObjects(enabled: boolean): void;
 }
 
-const GroupControl = React.memo((props: Props): JSX.Element => {
+function GroupControl(props: Props): JSX.Element {
     const {
         activeControl,
         canvasInstance,
@@ -42,10 +46,10 @@ const GroupControl = React.memo((props: Props): JSX.Element => {
         };
 
     return (
-        <Tooltip overlay='Group shapes/tracks' placement='right'>
+        <Tooltip title='Group shapes/tracks' placement='right'>
             <Icon {...dynamicIconProps} component={GroupIcon} />
         </Tooltip>
     );
-});
+}
 
-export default GroupControl;
+export default React.memo(GroupControl);

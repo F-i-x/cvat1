@@ -10,14 +10,16 @@ import os
 import os.path as osp
 import shutil
 
-from datumaro.components.project import Project
+from datumaro.components.project import Project, Environment, \
+    PROJECT_DEFAULT_CONFIG as DEFAULT_CONFIG
 from datumaro.components.comparator import Comparator
 from datumaro.components.dataset_filter import DatasetItemEncoder
 from datumaro.components.extractor import AnnotationType
+from datumaro.components.cli_plugin import CliPlugin
 from .diff import DiffVisualizer
-from ...util import add_subparser, CliException, MultilineFormatter
-from ...util.project import make_project_path, load_project, \
-    generate_next_dir_name
+from ...util import add_subparser, CliException, MultilineFormatter, \
+    make_file_name
+from ...util.project import load_project, generate_next_dir_name
 
 
 def build_create_parser(parser_ctor=argparse.ArgumentParser):
@@ -46,19 +48,23 @@ def build_create_parser(parser_ctor=argparse.ArgumentParser):
 
 def create_command(args):
     project_dir = osp.abspath(args.dst_dir)
-    project_path = make_project_path(project_dir)
 
-    if osp.isdir(project_dir) and os.listdir(project_dir):
+    project_env_dir = osp.join(project_dir, DEFAULT_CONFIG.env_dir)
+    if osp.isdir(project_env_dir) and os.listdir(project_env_dir):
         if not args.overwrite:
             raise CliException("Directory '%s' already exists "
-                "(pass --overwrite to force creation)" % project_dir)
+                "(pass --overwrite to force creation)" % project_env_dir)
         else:
-            shutil.rmtree(project_dir)
-    os.makedirs(project_dir, exist_ok=True)
+            shutil.rmtree(project_env_dir, ignore_errors=True)
 
-    if not args.overwrite and osp.isfile(project_path):
-        raise CliException("Project file '%s' already exists "
-            "(pass --overwrite to force creation)" % project_path)
+    own_dataset_dir = osp.join(project_dir, DEFAULT_CONFIG.dataset_dir)
+    if osp.isdir(own_dataset_dir) and os.listdir(own_dataset_dir):
+        if not args.overwrite:
+            raise CliException("Directory '%s' already exists "
+                "(pass --overwrite to force creation)" % own_dataset_dir)
+        else:
+            # NOTE: remove the dir to avoid using data from previous project
+            shutil.rmtree(own_dataset_dir)
 
     project_name = args.name
     if project_name is None:
@@ -75,8 +81,7 @@ def create_command(args):
     return 0
 
 def build_import_parser(parser_ctor=argparse.ArgumentParser):
-    import datumaro.components.importers as importers_module
-    builtin_importers = [name for name, cls in importers_module.items]
+    builtins = sorted(Environment().importers.items)
 
     parser = parser_ctor(help="Create project from existing dataset",
         description="""
@@ -104,7 +109,7 @@ def build_import_parser(parser_ctor=argparse.ArgumentParser):
             <project_dir>/.datumaro/extractors
             and <project_dir>/.datumaro/importers.|n
             |n
-            List of supported dataset formats: %s|n
+            List of builtin dataset formats: %s|n
             |n
             Examples:|n
             - Create a project from VOC dataset in the current directory:|n
@@ -112,7 +117,7 @@ def build_import_parser(parser_ctor=argparse.ArgumentParser):
             |n
             - Create a project from COCO dataset in other directory:|n
             |s|simport -f coco -i path/to/coco -o path/I/like/
-        """ % ', '.join(builtin_importers),
+        """ % ', '.join(builtins),
         formatter_class=MultilineFormatter)
 
     parser.add_argument('-o', '--output-dir', default='.', dest='dst_dir',
@@ -129,37 +134,52 @@ def build_import_parser(parser_ctor=argparse.ArgumentParser):
         help="Path to import project from")
     parser.add_argument('-f', '--format', required=True,
         help="Source project format")
-    # parser.add_argument('extra_args', nargs=argparse.REMAINDER,
-    #     help="Additional arguments for importer (pass '-- -h' for help)")
+    parser.add_argument('extra_args', nargs=argparse.REMAINDER,
+        help="Additional arguments for importer (pass '-- -h' for help)")
     parser.set_defaults(command=import_command)
 
     return parser
 
 def import_command(args):
     project_dir = osp.abspath(args.dst_dir)
-    project_path = make_project_path(project_dir)
 
-    if osp.isdir(project_dir) and os.listdir(project_dir):
+    project_env_dir = osp.join(project_dir, DEFAULT_CONFIG.env_dir)
+    if osp.isdir(project_env_dir) and os.listdir(project_env_dir):
         if not args.overwrite:
             raise CliException("Directory '%s' already exists "
-                "(pass --overwrite to force creation)" % project_dir)
+                "(pass --overwrite to force creation)" % project_env_dir)
         else:
-            shutil.rmtree(project_dir)
-    os.makedirs(project_dir, exist_ok=True)
+            shutil.rmtree(project_env_dir, ignore_errors=True)
 
-    if not args.overwrite and osp.isfile(project_path):
-        raise CliException("Project file '%s' already exists "
-            "(pass --overwrite to force creation)" % project_path)
+    own_dataset_dir = osp.join(project_dir, DEFAULT_CONFIG.dataset_dir)
+    if osp.isdir(own_dataset_dir) and os.listdir(own_dataset_dir):
+        if not args.overwrite:
+            raise CliException("Directory '%s' already exists "
+                "(pass --overwrite to force creation)" % own_dataset_dir)
+        else:
+            # NOTE: remove the dir to avoid using data from previous project
+            shutil.rmtree(own_dataset_dir)
 
     project_name = args.name
     if project_name is None:
         project_name = osp.basename(project_dir)
 
+    try:
+        env = Environment()
+        importer = env.make_importer(args.format)
+    except KeyError:
+        raise CliException("Importer for format '%s' is not found" % \
+            args.format)
+
+    extra_args = {}
+    if hasattr(importer, 'from_cmdline'):
+        extra_args = importer.from_cmdline(args.extra_args)
+
     log.info("Importing project from '%s' as '%s'" % \
         (args.source, args.format))
 
     source = osp.abspath(args.source)
-    project = Project.import_from(source, args.format)
+    project = importer(source, **extra_args)
     project.config.project_name = project_name
     project.config.project_dir = project_dir
 
@@ -217,8 +237,7 @@ class FilterModes(Enum):
         return [m.name.replace('_', '+') for m in cls]
 
 def build_export_parser(parser_ctor=argparse.ArgumentParser):
-    import datumaro.components.converters as converters_module
-    builtin_converters = [name for name, cls in converters_module.items]
+    builtins = sorted(Environment().converters.items)
 
     parser = parser_ctor(help="Export project",
         description="""
@@ -237,7 +256,7 @@ def build_export_parser(parser_ctor=argparse.ArgumentParser):
             To do this, you need to put a Converter
             definition script to <project_dir>/.datumaro/converters.|n
             |n
-            List of supported dataset formats: %s|n
+            List of builtin dataset formats: %s|n
             |n
             Examples:|n
             - Export project as a VOC-like dataset, include images:|n
@@ -245,7 +264,7 @@ def build_export_parser(parser_ctor=argparse.ArgumentParser):
             |n
             - Export project as a COCO-like dataset in other directory:|n
             |s|sexport -f coco -o path/I/like/
-        """ % ', '.join(builtin_converters),
+        """ % ', '.join(builtins),
         formatter_class=MultilineFormatter)
 
     parser.add_argument('-e', '--filter', default=None,
@@ -277,16 +296,19 @@ def export_command(args):
             raise CliException("Directory '%s' already exists "
                 "(pass --overwrite to force creation)" % dst_dir)
     else:
-        dst_dir = generate_next_dir_name('%s-export-%s' % \
-            (project.config.project_name, args.format))
+        dst_dir = generate_next_dir_name('%s-%s' % \
+            (project.config.project_name, make_file_name(args.format)))
     dst_dir = osp.abspath(dst_dir)
 
     try:
-        converter = project.env.make_converter(args.format,
-            cmdline_args=args.extra_args)
+        converter = project.env.converters.get(args.format)
     except KeyError:
         raise CliException("Converter for format '%s' is not found" % \
             args.format)
+
+    if hasattr(converter, 'from_cmdline'):
+        extra_args = converter.from_cmdline(args.extra_args)
+        converter = converter(**extra_args)
 
     filter_args = FilterModes.make_filter_args(args.filter_mode)
 
@@ -494,8 +516,7 @@ def diff_command(args):
             second_project.config.project_name)
         )
     dst_dir = osp.abspath(dst_dir)
-    if dst_dir:
-        log.info("Saving diff to '%s'" % dst_dir)
+    log.info("Saving diff to '%s'" % dst_dir)
 
     visualizer = DiffVisualizer(save_dir=dst_dir, comparator=comparator,
         output_format=args.format)
@@ -506,13 +527,19 @@ def diff_command(args):
     return 0
 
 def build_transform_parser(parser_ctor=argparse.ArgumentParser):
+    builtins = sorted(Environment().transforms.items)
+
     parser = parser_ctor(help="Transform project",
         description="""
             Applies some operation to dataset items in the project
-            and produces a new project.
-
-            [NOT IMPLEMENTED YET]
-        """,
+            and produces a new project.|n
+            |n
+            Builtin transforms: %s|n
+            |n
+            Examples:|n
+            - Convert instance polygons to masks:|n
+            |s|stransform -n polygons_to_masks
+        """ % ', '.join(builtins),
         formatter_class=MultilineFormatter)
 
     parser.add_argument('-t', '--transform', required=True,
@@ -523,30 +550,47 @@ def build_transform_parser(parser_ctor=argparse.ArgumentParser):
         help="Overwrite existing files in the save directory")
     parser.add_argument('-p', '--project', dest='project_dir', default='.',
         help="Directory of the project to operate on (default: current dir)")
+    parser.add_argument('extra_args', nargs=argparse.REMAINDER, default=None,
+        help="Additional arguments for transformation (pass '-- -h' for help)")
     parser.set_defaults(command=transform_command)
 
     return parser
 
 def transform_command(args):
-    raise NotImplementedError("Not implemented yet.")
+    project = load_project(args.project_dir)
 
-    # project = load_project(args.project_dir)
+    dst_dir = args.dst_dir
+    if dst_dir:
+        if not args.overwrite and osp.isdir(dst_dir) and os.listdir(dst_dir):
+            raise CliException("Directory '%s' already exists "
+                "(pass --overwrite to force creation)" % dst_dir)
+    else:
+        dst_dir = generate_next_dir_name('%s-%s' % \
+            (project.config.project_name, make_file_name(args.transform)))
+    dst_dir = osp.abspath(dst_dir)
 
-    # dst_dir = args.dst_dir
-    # if dst_dir:
-    #     if not args.overwrite and osp.isdir(dst_dir) and os.listdir(dst_dir):
-    #         raise CliException("Directory '%s' already exists "
-    #             "(pass --overwrite to force creation)" % dst_dir)
-    # dst_dir = osp.abspath(args.dst_dir)
+    try:
+        transform = project.env.transforms.get(args.transform)
+    except KeyError:
+        raise CliException("Transform '%s' is not found" % args.transform)
 
-    # project.make_dataset().transform_project(
-    #     method=args.transform,
-    #     save_dir=dst_dir
-    # )
+    extra_args = {}
+    if hasattr(transform, 'from_cmdline'):
+        extra_args = transform.from_cmdline(args.extra_args)
 
-    # log.info("Transform results saved to '%s'" % dst_dir)
+    log.info("Loading the project...")
+    dataset = project.make_dataset()
 
-    # return 0
+    log.info("Transforming the project...")
+    dataset.transform_project(
+        method=transform,
+        save_dir=dst_dir,
+        **extra_args
+    )
+
+    log.info("Transform results have been saved to '%s'" % dst_dir)
+
+    return 0
 
 def build_info_parser(parser_ctor=argparse.ArgumentParser):
     parser = parser_ctor(help="Get project info",
@@ -616,7 +660,7 @@ def info_command(args):
         print_extractor_info(subset, indent="      ")
 
     print("Models:")
-    for model_name, model in env.config.models.items():
+    for model_name, model in config.models.items():
         print("  model '%s':" % model_name)
         print("    type:", model.launcher)
 

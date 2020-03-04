@@ -1,3 +1,7 @@
+// Copyright (C) 2020 Intel Corporation
+//
+// SPDX-License-Identifier: MIT
+
 import React from 'react';
 
 import {
@@ -19,7 +23,7 @@ interface Props {
     splitTrack(enabled: boolean): void;
 }
 
-const SplitControl = React.memo((props: Props): JSX.Element => {
+function SplitControl(props: Props): JSX.Element {
     const {
         activeControl,
         canvasInstance,
@@ -42,10 +46,10 @@ const SplitControl = React.memo((props: Props): JSX.Element => {
         };
 
     return (
-        <Tooltip overlay='Split a track' placement='right'>
+        <Tooltip title='Split a track' placement='right'>
             <Icon {...dynamicIconProps} component={SplitIcon} />
         </Tooltip>
     );
-});
+}
 
-export default SplitControl;
+export default React.memo(SplitControl);

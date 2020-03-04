@@ -1,3 +1,7 @@
+// Copyright (C) 2020 Intel Corporation
+//
+// SPDX-License-Identifier: MIT
+
 import { AnyAction } from 'redux';
 
 import { AuthActionTypes } from 'actions/auth-actions';
@@ -46,6 +50,7 @@ const defaultState: NotificationsState = {
             starting: null,
             deleting: null,
             fetching: null,
+            canceling: null,
             metaFetching: null,
             inferenceStatusFetching: null,
         },
@@ -59,6 +64,15 @@ const defaultState: NotificationsState = {
             merging: null,
             grouping: null,
             splitting: null,
+            removing: null,
+            propagating: null,
+            collectingStatistics: null,
+            savingJob: null,
+            uploadAnnotations: null,
+            removeAnnotations: null,
+            fetchingAnnotations: null,
+            undo: null,
+            redo: null,
         },
     },
     messages: {
@@ -419,7 +433,7 @@ export default function (state = defaultState, action: AnyAction): Notifications
                 },
             };
         }
-        case ModelsActionTypes.INFER_MODEL_FAILED: {
+        case ModelsActionTypes.START_INFERENCE_FAILED: {
             const { taskID } = action.payload;
             return {
                 ...state,
@@ -429,6 +443,23 @@ export default function (state = defaultState, action: AnyAction): Notifications
                         ...state.errors.models,
                         starting: {
                             message: 'Could not infer model for the '
+                                + `<a href="/tasks/${taskID}" target="_blank">task ${taskID}</a>`,
+                            reason: action.payload.error.toString(),
+                        },
+                    },
+                },
+            };
+        }
+        case ModelsActionTypes.CANCEL_INFERENCE_FAILED: {
+            const { taskID } = action.payload;
+            return {
+                ...state,
+                errors: {
+                    ...state.errors,
+                    models: {
+                        ...state.errors.models,
+                        canceling: {
+                            message: 'Could not cancel model inference for the '
                                 + `<a href="/tasks/${taskID}" target="_blank">task ${taskID}</a>`,
                             reason: action.payload.error.toString(),
                         },
@@ -564,7 +595,155 @@ export default function (state = defaultState, action: AnyAction): Notifications
                     annotation: {
                         ...state.errors.annotation,
                         splitting: {
-                            message: 'Could not split a track',
+                            message: 'Could not split the track',
+                            reason: action.payload.error.toString(),
+                        },
+                    },
+                },
+            };
+        }
+        case AnnotationActionTypes.REMOVE_OBJECT_FAILED: {
+            return {
+                ...state,
+                errors: {
+                    ...state.errors,
+                    annotation: {
+                        ...state.errors.annotation,
+                        removing: {
+                            message: 'Could not remove the object',
+                            reason: action.payload.error.toString(),
+                        },
+                    },
+                },
+            };
+        }
+        case AnnotationActionTypes.PROPAGATE_OBJECT_FAILED: {
+            return {
+                ...state,
+                errors: {
+                    ...state.errors,
+                    annotation: {
+                        ...state.errors.annotation,
+                        propagating: {
+                            message: 'Could not propagate the object',
+                            reason: action.payload.error.toString(),
+                        },
+                    },
+                },
+            };
+        }
+        case AnnotationActionTypes.COLLECT_STATISTICS_FAILED: {
+            return {
+                ...state,
+                errors: {
+                    ...state.errors,
+                    annotation: {
+                        ...state.errors.annotation,
+                        collectingStatistics: {
+                            message: 'Could not collect annotations statistics',
+                            reason: action.payload.error.toString(),
+                        },
+                    },
+                },
+            };
+        }
+        case AnnotationActionTypes.CHANGE_JOB_STATUS_FAILED: {
+            return {
+                ...state,
+                errors: {
+                    ...state.errors,
+                    annotation: {
+                        ...state.errors.annotation,
+                        savingJob: {
+                            message: 'Could not save the job on the server',
+                            reason: action.payload.error.toString(),
+                        },
+                    },
+                },
+            };
+        }
+        case AnnotationActionTypes.UPLOAD_JOB_ANNOTATIONS_FAILED: {
+            const {
+                job,
+                error,
+            } = action.payload;
+
+            const {
+                id: jobID,
+                task: {
+                    id: taskID,
+                },
+            } = job;
+
+            return {
+                ...state,
+                errors: {
+                    ...state.errors,
+                    annotation: {
+                        ...state.errors.annotation,
+                        uploadAnnotations: {
+                            message: 'Could not upload annotations for the '
+                                + `<a href="/tasks/${taskID}/jobs/${jobID}" target="_blank">job ${taskID}</a>`,
+                            reason: error.toString(),
+                        },
+                    },
+                },
+            };
+        }
+        case AnnotationActionTypes.REMOVE_JOB_ANNOTATIONS_FAILED: {
+            return {
+                ...state,
+                errors: {
+                    ...state.errors,
+                    annotation: {
+                        ...state.errors.annotation,
+                        removeAnnotations: {
+                            message: 'Could not remove annotations',
+                            reason: action.payload.error.toString(),
+                        },
+                    },
+                },
+            };
+        }
+        case AnnotationActionTypes.FETCH_ANNOTATIONS_FAILED: {
+            return {
+                ...state,
+                errors: {
+                    ...state.errors,
+                    annotation: {
+                        ...state.errors.annotation,
+                        fetchingAnnotations: {
+                            message: 'Could not fetch annotations',
+                            reason: action.payload.error.toString(),
+                        },
+                    },
+                },
+            };
+        }
+        case AnnotationActionTypes.REDO_ACTION_FAILED: {
+            return {
+                ...state,
+                errors: {
+                    ...state.errors,
+                    annotation: {
+                        ...state.errors.annotation,
+                        redo: {
+                            message: 'Could not redo',
+                            reason: action.payload.error.toString(),
+                        },
+                    },
+                },
+            };
+        }
+        case AnnotationActionTypes.UNDO_ACTION_FAILED: {
+            return {
+                ...state,
+                errors: {
+                    ...state.errors,
+                    annotation: {
+                        ...state.errors.annotation,
+                        undo: {
+                            message: 'Could not undo',
                             reason: action.payload.error.toString(),
                         },
                     },

@@ -1,3 +1,7 @@
+// Copyright (C) 2020 Intel Corporation
+//
+// SPDX-License-Identifier: MIT
+
 import React from 'react';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
@@ -39,8 +43,8 @@ function mapStateToProps(state: CombinedState, own: Props): StateToProps {
         ? undefined : null);
 
     let deleteActivity = null;
-    if (task && id in deletes.byTask) {
-        deleteActivity = deletes.byTask[id];
+    if (task && id in deletes) {
+        deleteActivity = deletes[id];
     }
 
     return {

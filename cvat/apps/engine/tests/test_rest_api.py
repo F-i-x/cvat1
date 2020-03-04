@@ -2638,6 +2638,47 @@ class TaskAnnotationAPITestCase(JobAnnotationAPITestCase):
                 "occluded": False
             }]
 
+            polygon_shapes_with_attrs = [{
+                "frame": 2,
+                "label_id": task["labels"][0]["id"],
+                "group": 1,
+                "attributes": [
+                    {
+                        "spec_id": task["labels"][0]["attributes"][0]["id"],
+                        "value": task["labels"][0]["attributes"][0]["values"][1]
+                    },
+                    {
+                        "spec_id": task["labels"][0]["attributes"][1]["id"],
+                        "value": task["labels"][0]["attributes"][1]["default_value"]
+                    }
+                ],
+                "points": [20.0, 0.1, 10, 3.22, 4, 7, 10, 30, 1, 2, 4.44, 5.55],
+                "type": "polygon",
+                "occluded": True
+            }]
+
+            tags_wo_attrs = [{
+                "frame": 2,
+                "label_id": task["labels"][1]["id"],
+                "group": 0,
+                "attributes": []
+            }]
+            tags_with_attrs = [{
+                "frame": 1,
+                "label_id": task["labels"][0]["id"],
+                "group": 3,
+                "attributes": [
+                    {
+                        "spec_id": task["labels"][0]["attributes"][0]["id"],
+                        "value": task["labels"][0]["attributes"][0]["values"][1]
+                    },
+                    {
+                        "spec_id": task["labels"][0]["attributes"][1]["id"],
+                        "value": task["labels"][0]["attributes"][1]["default_value"]
+                    }
+                ],
+            }]
+
             annotations = {
                     "version": 0,
                     "tags": [],
@@ -2648,19 +2689,24 @@ class TaskAnnotationAPITestCase(JobAnnotationAPITestCase):
                 annotations["tracks"] = rectangle_tracks_with_attrs + rectangle_tracks_wo_attrs
 
             elif annotation_format == "CVAT XML 1.1 for images":
-                annotations["shapes"] = rectangle_shapes_with_attrs + rectangle_shapes_wo_attrs
+                annotations["shapes"] = rectangle_shapes_with_attrs + rectangle_shapes_wo_attrs \
+                    + polygon_shapes_wo_attrs + polygon_shapes_with_attrs
+                annotations["tags"] = tags_with_attrs + tags_wo_attrs
 
-            elif annotation_format == "PASCAL VOC ZIP 1.0" or \
-                 annotation_format == "YOLO ZIP 1.0" or \
+            elif annotation_format == "PASCAL VOC ZIP 1.1":
+                annotations["shapes"] = rectangle_shapes_wo_attrs
+                annotations["tags"] = tags_wo_attrs
+
+            elif annotation_format == "YOLO ZIP 1.1" or \
                  annotation_format == "TFRecord ZIP 1.0":
-                 annotations["shapes"] = rectangle_shapes_wo_attrs
+                annotations["shapes"] = rectangle_shapes_wo_attrs
 
             elif annotation_format == "COCO JSON 1.0":
                 annotations["shapes"] = polygon_shapes_wo_attrs
 
-            elif annotation_format == "MASK ZIP 1.0":
-                annotations["shapes"] = rectangle_shapes_with_attrs + rectangle_shapes_wo_attrs + polygon_shapes_wo_attrs
-                annotations["tracks"] = rectangle_tracks_with_attrs + rectangle_tracks_wo_attrs
+            elif annotation_format == "MASK ZIP 1.1":
+                annotations["shapes"] = rectangle_shapes_wo_attrs + polygon_shapes_wo_attrs
+                annotations["tracks"] = rectangle_tracks_wo_attrs
 
             elif annotation_format == "MOT CSV 1.0":
                 annotations["tracks"] = rectangle_tracks_wo_attrs
@@ -2730,6 +2776,8 @@ class TaskAnnotationAPITestCase(JobAnnotationAPITestCase):
                     }
 
                     for loader in annotation_format["loaders"]:
+                        if loader["display_name"] == "MASK ZIP 1.1":
+                            continue # can't really predict the result and check
                         response = self._upload_api_v1_tasks_id_annotations(task["id"], annotator, uploaded_data, "format={}".format(loader["display_name"]))
                         self.assertEqual(response.status_code, HTTP_202_ACCEPTED)
 

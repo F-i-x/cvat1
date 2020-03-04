@@ -1,11 +1,25 @@
+// Copyright (C) 2020 Intel Corporation
+//
+// SPDX-License-Identifier: MIT
+
 import React from 'react';
+import copy from 'copy-to-clipboard';
 import { connect } from 'react-redux';
 import {
+    ActiveControl,
     CombinedState,
+    ColorBy,
 } from 'reducers/interfaces';
 import {
     collapseObjectItems,
+    changeLabelColorAsync,
     updateAnnotationsAsync,
+    changeFrameAsync,
+    removeObjectAsync,
+    changeGroupColorAsync,
+    copyShape as copyShapeAction,
+    activateObject as activateObjectAction,
+    propagateObject as propagateObjectAction,
 } from 'actions/annotation-actions';
 
 import ObjectStateItemComponent from 'components/annotation-page/standard-workspace/objects-side-bar/object-item';
@@ -21,11 +35,25 @@ interface StateToProps {
     attributes: any[];
     jobInstance: any;
     frameNumber: number;
+    activated: boolean;
+    colorBy: ColorBy;
+    ready: boolean;
+    colors: string[];
+    activeControl: ActiveControl;
+    minZLayer: number;
+    maxZLayer: number;
 }
 
 interface DispatchToProps {
+    changeFrame(frame: number): void;
     updateState(sessionInstance: any, frameNumber: number, objectState: any): void;
     collapseOrExpand(objectStates: any[], collapsed: boolean): void;
+    activateObject: (activatedStateID: number | null) => void;
+    removeObject: (sessionInstance: any, objectState: any) => void;
+    copyShape: (objectState: any) => void;
+    propagateObject: (objectState: any) => void;
+    changeLabelColor(sessionInstance: any, frameNumber: number, label: any, color: string): void;
+    changeGroupColor(sessionInstance: any, frameNumber: number, group: number, color: string): void;
 }
 
 function mapStateToProps(state: CombinedState, own: OwnProps): StateToProps {
@@ -34,16 +62,31 @@ function mapStateToProps(state: CombinedState, own: OwnProps): StateToProps {
             annotations: {
                 states,
                 collapsed: statesCollapsed,
+                activatedStateID,
+                zLayer: {
+                    min: minZLayer,
+                    max: maxZLayer,
+                },
             },
             job: {
-                labels,
                 attributes: jobAttributes,
                 instance: jobInstance,
+                labels,
             },
             player: {
                 frame: {
                     number: frameNumber,
                 },
+            },
+            canvas: {
+                ready,
+                activeControl,
+            },
+            colors,
+        },
+        settings: {
+            shapes: {
+                colorBy,
             },
         },
     } = state;
@@ -60,24 +103,191 @@ function mapStateToProps(state: CombinedState, own: OwnProps): StateToProps {
         collapsed: collapsedState,
         attributes: jobAttributes[states[index].label.id],
         labels,
+        ready,
+        activeControl,
+        colorBy,
+        colors,
         jobInstance,
         frameNumber,
+        activated: activatedStateID === own.clientID,
+        minZLayer,
+        maxZLayer,
     };
 }
 
 function mapDispatchToProps(dispatch: any): DispatchToProps {
     return {
+        changeFrame(frame: number): void {
+            dispatch(changeFrameAsync(frame));
+        },
         updateState(sessionInstance: any, frameNumber: number, state: any): void {
             dispatch(updateAnnotationsAsync(sessionInstance, frameNumber, [state]));
         },
         collapseOrExpand(objectStates: any[], collapsed: boolean): void {
             dispatch(collapseObjectItems(objectStates, collapsed));
         },
+        activateObject(activatedStateID: number | null): void {
+            dispatch(activateObjectAction(activatedStateID));
+        },
+        removeObject(sessionInstance: any, objectState: any): void {
+            dispatch(removeObjectAsync(sessionInstance, objectState, true));
+        },
+        copyShape(objectState: any): void {
+            dispatch(copyShapeAction(objectState));
+        },
+        propagateObject(objectState: any): void {
+            dispatch(propagateObjectAction(objectState));
+        },
+        changeLabelColor(
+            sessionInstance: any,
+            frameNumber: number,
+            label: any,
+            color: string,
+        ): void {
+            dispatch(changeLabelColorAsync(sessionInstance, frameNumber, label, color));
+        },
+        changeGroupColor(
+            sessionInstance: any,
+            frameNumber: number,
+            group: number,
+            color: string,
+        ): void {
+            dispatch(changeGroupColorAsync(sessionInstance, frameNumber, group, color));
+        },
     };
 }
 
 type Props = StateToProps & DispatchToProps;
 class ObjectItemContainer extends React.PureComponent<Props> {
+    private navigateFirstKeyframe = (): void => {
+        const {
+            objectState,
+            changeFrame,
+            frameNumber,
+        } = this.props;
+
+        const { first } = objectState.keyframes;
+        if (first !== frameNumber) {
+            changeFrame(first);
+        }
+    };
+
+    private navigatePrevKeyframe = (): void => {
+        const {
+            objectState,
+            changeFrame,
+            frameNumber,
+        } = this.props;
+
+        const { prev } = objectState.keyframes;
+        if (prev !== null && prev !== frameNumber) {
+            changeFrame(prev);
+        }
+    };
+
+    private navigateNextKeyframe = (): void => {
+        const {
+            objectState,
+            changeFrame,
+            frameNumber,
+        } = this.props;
+
+        const { next } = objectState.keyframes;
+        if (next !== null && next !== frameNumber) {
+            changeFrame(next);
+        }
+    };
+
+    private navigateLastKeyframe = (): void => {
+        const {
+            objectState,
+            changeFrame,
+            frameNumber,
+        } = this.props;
+
+        const { last } = objectState.keyframes;
+        if (last !== frameNumber) {
+            changeFrame(last);
+        }
+    };
+
+    private copy = (): void => {
+        const {
+            objectState,
+            copyShape,
+        } = this.props;
+
+        copyShape(objectState);
+    };
+
+    private propagate = (): void => {
+        const {
+            objectState,
+            propagateObject,
+        } = this.props;
+
+        propagateObject(objectState);
+    };
+
+    private remove = (): void => {
+        const {
+            objectState,
+            removeObject,
+            jobInstance,
+        } = this.props;
+
+        removeObject(jobInstance, objectState);
+    };
+
+    private createURL = (): void => {
+        const {
+            objectState,
+            frameNumber,
+        } = this.props;
+
+        const {
+            origin,
+            pathname,
+        } = window.location;
+
+        const search = `frame=${frameNumber}&object=${objectState.serverID}`;
+        const url = `${origin}${pathname}?${search}`;
+        copy(url);
+    };
+
+    private toBackground = (): void => {
+        const {
+            objectState,
+            minZLayer,
+        } = this.props;
+
+        objectState.zOrder = minZLayer - 1;
+        this.commit();
+    };
+
+    private toForeground = (): void => {
+        const {
+            objectState,
+            maxZLayer,
+        } = this.props;
+
+        objectState.zOrder = maxZLayer + 1;
+        this.commit();
+    };
+
+    private activate = (): void => {
+        const {
+            activateObject,
+            objectState,
+            ready,
+            activeControl,
+        } = this.props;
+
+        if (ready && activeControl === ActiveControl.CURSOR) {
+            activateObject(objectState.clientID);
+        }
+    };
+
     private lock = (): void => {
         const { objectState } = this.props;
         objectState.lock = true;
@@ -87,6 +297,18 @@ class ObjectItemContainer extends React.PureComponent<Props> {
     private unlock = (): void => {
         const { objectState } = this.props;
         objectState.lock = false;
+        this.commit();
+    };
+
+    private pin = (): void => {
+        const { objectState } = this.props;
+        objectState.pinned = true;
+        this.commit();
+    };
+
+    private unpin = (): void => {
+        const { objectState } = this.props;
+        objectState.pinned = false;
         this.commit();
     };
 
@@ -148,6 +370,26 @@ class ObjectItemContainer extends React.PureComponent<Props> {
         collapseOrExpand([objectState], !collapsed);
     };
 
+    private changeColor = (color: string): void => {
+        const {
+            jobInstance,
+            objectState,
+            colorBy,
+            changeLabelColor,
+            changeGroupColor,
+            frameNumber,
+        } = this.props;
+
+        if (colorBy === ColorBy.INSTANCE) {
+            objectState.color = color;
+            this.commit();
+        } else if (colorBy === ColorBy.GROUP) {
+            changeGroupColor(jobInstance, frameNumber, objectState.group.id, color);
+        } else if (colorBy === ColorBy.LABEL) {
+            changeLabelColor(jobInstance, frameNumber, objectState.label, color);
+        }
+    };
+
     private changeLabel = (labelID: string): void => {
         const {
             objectState,
@@ -184,24 +426,76 @@ class ObjectItemContainer extends React.PureComponent<Props> {
             collapsed,
             labels,
             attributes,
+            frameNumber,
+            activated,
+            colorBy,
+            colors,
         } = this.props;
+
+        const {
+            first,
+            prev,
+            next,
+            last,
+        } = objectState.keyframes || {
+            first: null, // shapes don't have keyframes, so we use null
+            prev: null,
+            next: null,
+            last: null,
+        };
+
+        let stateColor = '';
+        if (colorBy === ColorBy.INSTANCE) {
+            stateColor = objectState.color;
+        } else if (colorBy === ColorBy.GROUP) {
+            stateColor = objectState.group.color;
+        } else if (colorBy === ColorBy.LABEL) {
+            stateColor = objectState.label.color;
+        }
 
         return (
             <ObjectStateItemComponent
+                activated={activated}
                 objectType={objectState.objectType}
                 shapeType={objectState.shapeType}
                 clientID={objectState.clientID}
+                serverID={objectState.serverID}
                 occluded={objectState.occluded}
                 outside={objectState.outside}
                 locked={objectState.lock}
+                pinned={objectState.pinned}
                 hidden={objectState.hidden}
                 keyframe={objectState.keyframe}
                 attrValues={{ ...objectState.attributes }}
                 labelID={objectState.label.id}
-                color={objectState.color}
+                color={stateColor}
+                colors={colors}
                 attributes={attributes}
                 labels={labels}
                 collapsed={collapsed}
+                navigateFirstKeyframe={
+                    first >= frameNumber || first === null
+                        ? null : this.navigateFirstKeyframe
+                }
+                navigatePrevKeyframe={
+                    prev === frameNumber || prev === null
+                        ? null : this.navigatePrevKeyframe
+                }
+                navigateNextKeyframe={
+                    next === frameNumber || next === null
+                        ? null : this.navigateNextKeyframe
+                }
+                navigateLastKeyframe={
+                    last <= frameNumber || last === null
+                        ? null : this.navigateLastKeyframe
+                }
+                activate={this.activate}
+                remove={this.remove}
+                copy={this.copy}
+                propagate={this.propagate}
+                createURL={this.createURL}
+                toBackground={this.toBackground}
+                toForeground={this.toForeground}
                 setOccluded={this.setOccluded}
                 unsetOccluded={this.unsetOccluded}
                 setOutside={this.setOutside}
@@ -210,8 +504,11 @@ class ObjectItemContainer extends React.PureComponent<Props> {
                 unsetKeyframe={this.unsetKeyframe}
                 lock={this.lock}
                 unlock={this.unlock}
+                pin={this.pin}
+                unpin={this.unpin}
                 hide={this.hide}
                 show={this.show}
+                changeColor={this.changeColor}
                 changeLabel={this.changeLabel}
                 changeAttribute={this.changeAttribute}
                 collapse={this.collapse}

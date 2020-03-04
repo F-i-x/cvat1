@@ -1,4 +1,8 @@
-import { Canvas } from 'cvat-canvas';
+// Copyright (C) 2020 Intel Corporation
+//
+// SPDX-License-Identifier: MIT
+
+import { Canvas, RectDrawingMethod } from 'cvat-canvas';
 
 export type StringObject = {
     [index: string]: string;
@@ -36,27 +40,19 @@ export interface TasksState {
     current: Task[];
     activities: {
         dumps: {
-            byTask: {
-                // dumps in different formats at the same time
-                [tid: number]: string[]; // dumper names
-            };
+            // dumps in different formats at the same time
+            [tid: number]: string[]; // dumper names
         };
         exports: {
-            byTask: {
-                // exports in different formats at the same time
-                [tid: number]: string[]; // dumper names
-            };
+            // exports in different formats at the same time
+            [tid: number]: string[]; // dumper names
         };
         loads: {
-            byTask: {
-                // only one loading simultaneously
-                [tid: number]: string; // loader name
-            };
+            // only one loading simultaneously
+            [tid: number]: string; // loader name
         };
         deletes: {
-            byTask: {
-                [tid: number]: boolean; // deleted (deleting if in dictionary)
-            };
+            [tid: number]: boolean; // deleted (deleting if in dictionary)
         };
         creates: {
             status: string;
@@ -96,6 +92,11 @@ export interface UsersState {
 
 export interface AboutState {
     server: any;
+    packageVersion: {
+        core: string;
+        canvas: string;
+        ui: string;
+    };
     fetching: boolean;
     initialized: boolean;
 }
@@ -133,10 +134,17 @@ export enum RQStatus {
     failed = 'failed',
 }
 
+export enum ModelType {
+    OPENVINO = 'openvino',
+    RCNN = 'rcnn',
+    MASK_RCNN = 'mask_rcnn',
+}
+
 export interface ActiveInference {
     status: RQStatus;
     progress: number;
     error: string;
+    modelType: ModelType;
 }
 
 export interface ModelsState {
@@ -198,6 +206,7 @@ export interface NotificationsState {
             starting: null | ErrorState;
             deleting: null | ErrorState;
             fetching: null | ErrorState;
+            canceling: null | ErrorState;
             metaFetching: null | ErrorState;
             inferenceStatusFetching: null | ErrorState;
         };
@@ -211,6 +220,15 @@ export interface NotificationsState {
             merging: null | ErrorState;
             grouping: null | ErrorState;
             splitting: null | ErrorState;
+            removing: null | ErrorState;
+            propagating: null | ErrorState;
+            collectingStatistics: null | ErrorState;
+            savingJob: null | ErrorState;
+            uploadAnnotations: null | ErrorState;
+            removeAnnotations: null | ErrorState;
+            fetchingAnnotations: null | ErrorState;
+            undo: null | ErrorState;
+            redo: null | ErrorState;
         };
 
         [index: string]: any;
@@ -238,6 +256,7 @@ export enum ActiveControl {
     MERGE = 'merge',
     GROUP = 'group',
     SPLIT = 'split',
+    EDIT = 'edit',
 }
 
 export enum ShapeType {
@@ -259,39 +278,87 @@ export enum StatesOrdering {
     UPDATED = 'Updated time',
 }
 
+export enum ContextMenuType {
+    CANVAS = 'canvas',
+    CANVAS_SHAPE = 'canvas_shape',
+}
+
+export enum Rotation {
+    ANTICLOCKWISE90,
+    CLOCKWISE90,
+}
+
 export interface AnnotationState {
+    activities: {
+        loads: {
+            // only one loading simultaneously
+            [jid: number]: string; // loader name
+        };
+    };
     canvas: {
+        contextMenu: {
+            visible: boolean;
+            top: number;
+            left: number;
+        };
         instance: Canvas;
         ready: boolean;
         activeControl: ActiveControl;
     };
     job: {
-        instance: any | null | undefined;
         labels: any[];
+        instance: any | null | undefined;
         attributes: Record<number, any[]>;
         fetching: boolean;
+        saving: boolean;
     };
     player: {
         frame: {
             number: number;
             data: any | null;
             fetching: boolean;
+            delay: number;
+            changeTime: number | null;
         };
         playing: boolean;
+        frameAngles: number[];
     };
     drawing: {
         activeShapeType: ShapeType;
+        activeRectDrawingMethod?: RectDrawingMethod;
         activeNumOfPoints?: number;
         activeLabelID: number;
         activeObjectType: ObjectType;
     };
     annotations: {
+        selectedStatesID: number[];
+        activatedStateID: number | null;
         collapsed: Record<number, boolean>;
         states: any[];
+        filters: string[];
+        filtersHistory: string[];
+        history: {
+            undo: string[];
+            redo: string[];
+        };
         saving: {
             uploading: boolean;
             statuses: string[];
         };
+        zLayer: {
+            min: number;
+            max: number;
+            cur: number;
+        };
+    };
+    propagate: {
+        objectState: any | null;
+        frames: number;
+    };
+    statistics: {
+        collecting: boolean;
+        visible: boolean;
+        data: any;
     };
     colors: any[];
     sidebarCollapsed: boolean;
@@ -316,6 +383,12 @@ export enum FrameSpeed {
     Slowest = 1,
 }
 
+export enum ColorBy {
+    INSTANCE = 'Instance',
+    GROUP = 'Group',
+    LABEL = 'Label',
+}
+
 export interface PlayerSettingsState {
     frameStep: number;
     frameSpeed: FrameSpeed;
@@ -337,7 +410,15 @@ export interface WorkspaceSettingsState {
     showAllInterpolationTracks: boolean;
 }
 
+export interface ShapesSettingsState {
+    colorBy: ColorBy;
+    opacity: number;
+    selectedOpacity: number;
+    blackBorders: boolean;
+}
+
 export interface SettingsState {
+    shapes: ShapesSettingsState;
     workspace: WorkspaceSettingsState;
     player: PlayerSettingsState;
 }

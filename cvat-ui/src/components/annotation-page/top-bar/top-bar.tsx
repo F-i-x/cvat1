@@ -1,3 +1,7 @@
+// Copyright (C) 2020 Intel Corporation
+//
+// SPDX-License-Identifier: MIT
+
 import React from 'react';
 
 import {
@@ -20,6 +24,9 @@ interface Props {
     frameNumber: number;
     startFrame: number;
     stopFrame: number;
+    undoAction?: string;
+    redoAction?: string;
+    showStatistics(): void;
     onSwitchPlay(): void;
     onSaveAnnotation(): void;
     onPrevFrame(): void;
@@ -30,25 +37,22 @@ interface Props {
     onLastFrame(): void;
     onSliderChange(value: SliderValue): void;
     onInputChange(value: number | undefined): void;
+    onURLIconClick(): void;
+    onUndoClick(): void;
+    onRedoClick(): void;
 }
 
-function propsAreEqual(curProps: Props, prevProps: Props): boolean {
-    return curProps.playing === prevProps.playing
-        && curProps.saving === prevProps.saving
-        && curProps.frameNumber === prevProps.frameNumber
-        && curProps.startFrame === prevProps.startFrame
-        && curProps.stopFrame === prevProps.stopFrame
-        && curProps.savingStatuses.length === prevProps.savingStatuses.length;
-}
-
-const AnnotationTopBarComponent = React.memo((props: Props): JSX.Element => {
+function AnnotationTopBarComponent(props: Props): JSX.Element {
     const {
         saving,
         savingStatuses,
+        undoAction,
+        redoAction,
         playing,
         frameNumber,
         startFrame,
         stopFrame,
+        showStatistics,
         onSwitchPlay,
         onSaveAnnotation,
         onPrevFrame,
@@ -59,6 +63,9 @@ const AnnotationTopBarComponent = React.memo((props: Props): JSX.Element => {
         onLastFrame,
         onSliderChange,
         onInputChange,
+        onURLIconClick,
+        onUndoClick,
+        onRedoClick,
     } = props;
 
     return (
@@ -68,6 +75,10 @@ const AnnotationTopBarComponent = React.memo((props: Props): JSX.Element => {
                     saving={saving}
                     savingStatuses={savingStatuses}
                     onSaveAnnotation={onSaveAnnotation}
+                    undoAction={undoAction}
+                    redoAction={redoAction}
+                    onUndoClick={onUndoClick}
+                    onRedoClick={onRedoClick}
                 />
                 <Col className='cvat-annotation-header-player-group'>
                     <Row type='flex' align='middle'>
@@ -87,13 +98,14 @@ const AnnotationTopBarComponent = React.memo((props: Props): JSX.Element => {
                             frameNumber={frameNumber}
                             onSliderChange={onSliderChange}
                             onInputChange={onInputChange}
+                            onURLIconClick={onURLIconClick}
                         />
                     </Row>
                 </Col>
-                <RightGroup />
+                <RightGroup showStatistics={showStatistics} />
             </Row>
         </Layout.Header>
     );
-}, propsAreEqual);
+}
 
-export default AnnotationTopBarComponent;
+export default React.memo(AnnotationTopBarComponent);

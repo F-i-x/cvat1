@@ -1,3 +1,7 @@
+// Copyright (C) 2020 Intel Corporation
+//
+// SPDX-License-Identifier: MIT
+
 import React from 'react';
 
 import {
@@ -19,7 +23,7 @@ interface Props {
     mergeObjects(enabled: boolean): void;
 }
 
-const MergeControl = React.memo((props: Props): JSX.Element => {
+function MergeControl(props: Props): JSX.Element {
     const {
         activeControl,
         canvasInstance,
@@ -42,10 +46,10 @@ const MergeControl = React.memo((props: Props): JSX.Element => {
         };
 
     return (
-        <Tooltip overlay='Merge shapes/tracks' placement='right'>
+        <Tooltip title='Merge shapes/tracks' placement='right'>
             <Icon {...dynamicIconProps} component={MergeIcon} />
         </Tooltip>
     );
-});
+}
 
-export default MergeControl;
+export default React.memo(MergeControl);

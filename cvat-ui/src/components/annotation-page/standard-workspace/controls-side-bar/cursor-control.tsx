@@ -1,3 +1,7 @@
+// Copyright (C) 2020 Intel Corporation
+//
+// SPDX-License-Identifier: MIT
+
 import React from 'react';
 
 import {
@@ -22,19 +26,18 @@ interface Props {
     activeControl: ActiveControl;
 }
 
-const CursorControl = React.memo((props: Props): JSX.Element => {
+function CursorControl(props: Props): JSX.Element {
     const {
         canvasInstance,
         activeControl,
     } = props;
 
     return (
-        <Tooltip overlay='Cursor' placement='right'>
+        <Tooltip title='Cursor' placement='right'>
             <Icon
                 component={CursorIcon}
                 className={activeControl === ActiveControl.CURSOR
-                    ? 'cvat-active-canvas-control' : ''
-                }
+                    ? 'cvat-active-canvas-control' : ''}
                 onClick={
                     activeControl !== ActiveControl.CURSOR
                         ? (): void => canvasInstance.cancel()
@@ -43,6 +46,6 @@ const CursorControl = React.memo((props: Props): JSX.Element => {
             />
         </Tooltip>
     );
-});
+}
 
-export default CursorControl;
+export default React.memo(CursorControl);

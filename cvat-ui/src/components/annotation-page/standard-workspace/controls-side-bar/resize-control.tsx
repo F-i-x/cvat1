@@ -1,3 +1,7 @@
+// Copyright (C) 2020 Intel Corporation
+//
+// SPDX-License-Identifier: MIT
+
 import React from 'react';
 
 import {
@@ -22,19 +26,18 @@ interface Props {
     activeControl: ActiveControl;
 }
 
-const ResizeControl = React.memo((props: Props): JSX.Element => {
+function ResizeControl(props: Props): JSX.Element {
     const {
         activeControl,
         canvasInstance,
     } = props;
 
     return (
-        <Tooltip overlay='Select a region of interest' placement='right'>
+        <Tooltip title='Select a region of interest' placement='right'>
             <Icon
                 component={ZoomIcon}
                 className={activeControl === ActiveControl.ZOOM_CANVAS
-                    ? 'cvat-active-canvas-control' : ''
-                }
+                    ? 'cvat-active-canvas-control' : ''}
                 onClick={(): void => {
                     if (activeControl === ActiveControl.ZOOM_CANVAS) {
                         canvasInstance.zoomCanvas(false);
@@ -46,6 +49,6 @@ const ResizeControl = React.memo((props: Props): JSX.Element => {
             />
         </Tooltip>
     );
-});
+}
 
-export default ResizeControl;
+export default React.memo(ResizeControl);

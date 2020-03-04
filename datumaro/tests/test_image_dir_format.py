@@ -1,12 +1,11 @@
 import numpy as np
-import os.path as osp
 
 from unittest import TestCase
 
 from datumaro.components.project import Project
 from datumaro.components.extractor import Extractor, DatasetItem
-from datumaro.util.test_utils import TestDir
-from datumaro.util.image import save_image
+from datumaro.plugins.image_dir import ImageDirConverter
+from datumaro.util.test_utils import TestDir, compare_datasets
 
 
 class ImageDirFormatTest(TestCase):
@@ -21,28 +20,9 @@ class ImageDirFormatTest(TestCase):
         with TestDir() as test_dir:
             source_dataset = self.TestExtractor()
 
-            for item in source_dataset:
-                save_image(osp.join(test_dir.path, '%s.jpg' % item.id),
-                    item.image)
+            ImageDirConverter()(source_dataset, save_dir=test_dir)
 
-            project = Project.import_from(test_dir.path, 'image_dir')
+            project = Project.import_from(test_dir, 'image_dir')
             parsed_dataset = project.make_dataset()
 
-            self.assertListEqual(
-                sorted(source_dataset.subsets()),
-                sorted(parsed_dataset.subsets()),
-            )
-
-            self.assertEqual(len(source_dataset), len(parsed_dataset))
-
-            for subset_name in source_dataset.subsets():
-                source_subset = source_dataset.get_subset(subset_name)
-                parsed_subset = parsed_dataset.get_subset(subset_name)
-                self.assertEqual(len(source_subset), len(parsed_subset))
-                for idx, (item_a, item_b) in enumerate(
-                        zip(source_subset, parsed_subset)):
-                    self.assertEqual(item_a, item_b, str(idx))
-
-            self.assertEqual(
-                source_dataset.categories(),
-                parsed_dataset.categories())
+            compare_datasets(self, source_dataset, parsed_dataset)

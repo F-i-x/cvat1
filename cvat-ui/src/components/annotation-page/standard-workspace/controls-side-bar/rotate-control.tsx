@@ -1,3 +1,7 @@
+// Copyright (C) 2020 Intel Corporation
+//
+// SPDX-License-Identifier: MIT
+
 import React from 'react';
 
 import {
@@ -12,18 +16,15 @@ import {
 
 import {
     Rotation,
-    Canvas,
-} from 'cvat-canvas';
+} from 'reducers/interfaces';
 
 interface Props {
-    canvasInstance: Canvas;
-    rotateAll: boolean;
+    rotateFrame(rotation: Rotation): void;
 }
 
-const RotateControl = React.memo((props: Props): JSX.Element => {
+function RotateControl(props: Props): JSX.Element {
     const {
-        rotateAll,
-        canvasInstance,
+        rotateFrame,
     } = props;
 
     return (
@@ -32,19 +33,17 @@ const RotateControl = React.memo((props: Props): JSX.Element => {
             placement='right'
             content={(
                 <>
-                    <Tooltip overlay='Rotate the image anticlockwise' placement='topRight'>
+                    <Tooltip title='Rotate the image anticlockwise' placement='topRight'>
                         <Icon
                             className='cvat-rotate-canvas-controls-left'
-                            onClick={(): void => canvasInstance
-                                .rotate(Rotation.ANTICLOCKWISE90, rotateAll)}
+                            onClick={(): void => rotateFrame(Rotation.ANTICLOCKWISE90)}
                             component={RotateIcon}
                         />
                     </Tooltip>
-                    <Tooltip overlay='Rotate the image clockwise' placement='topRight'>
+                    <Tooltip title='Rotate the image clockwise' placement='topRight'>
                         <Icon
                             className='cvat-rotate-canvas-controls-right'
-                            onClick={(): void => canvasInstance
-                                .rotate(Rotation.CLOCKWISE90, rotateAll)}
+                            onClick={(): void => rotateFrame(Rotation.CLOCKWISE90)}
                             component={RotateIcon}
                         />
                     </Tooltip>
@@ -55,6 +54,6 @@ const RotateControl = React.memo((props: Props): JSX.Element => {
             <Icon component={RotateIcon} />
         </Popover>
     );
-});
+}
 
-export default RotateControl;
+export default React.memo(RotateControl);

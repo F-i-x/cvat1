@@ -1,3 +1,7 @@
+// Copyright (C) 2020 Intel Corporation
+//
+// SPDX-License-Identifier: MIT
+
 import React from 'react';
 
 import {
@@ -22,19 +26,18 @@ interface Props {
     activeControl: ActiveControl;
 }
 
-const MoveControl = React.memo((props: Props): JSX.Element => {
+function MoveControl(props: Props): JSX.Element {
     const {
         canvasInstance,
         activeControl,
     } = props;
 
     return (
-        <Tooltip overlay='Move the image' placement='right'>
+        <Tooltip title='Move the image' placement='right'>
             <Icon
                 component={MoveIcon}
                 className={activeControl === ActiveControl.DRAG_CANVAS
-                    ? 'cvat-active-canvas-control' : ''
-                }
+                    ? 'cvat-active-canvas-control' : ''}
                 onClick={(): void => {
                     if (activeControl === ActiveControl.DRAG_CANVAS) {
                         canvasInstance.dragCanvas(false);
@@ -46,6 +49,6 @@ const MoveControl = React.memo((props: Props): JSX.Element => {
             />
         </Tooltip>
     );
-});
+}
 
-export default MoveControl;
+export default React.memo(MoveControl);

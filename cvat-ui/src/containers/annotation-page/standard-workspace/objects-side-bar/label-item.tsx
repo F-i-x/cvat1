@@ -1,8 +1,12 @@
+// Copyright (C) 2020 Intel Corporation
+//
+// SPDX-License-Identifier: MIT
+
 import React from 'react';
 import { connect } from 'react-redux';
 
 import {
-    changeLabelColor as changeLabelColorAction,
+    changeLabelColorAsync,
     updateAnnotationsAsync,
 } from 'actions/annotation-actions';
 
@@ -26,7 +30,7 @@ interface StateToProps {
 
 interface DispatchToProps {
     updateAnnotations(sessionInstance: any, frameNumber: number, states: any[]): void;
-    changeLabelColor(label: any, color: string): void;
+    changeLabelColor(sessionInstance: any, frameNumber: number, label: any, color: string): void;
 }
 
 function mapStateToProps(state: CombinedState, own: OwnProps): StateToProps {
@@ -36,8 +40,8 @@ function mapStateToProps(state: CombinedState, own: OwnProps): StateToProps {
                 states: objectStates,
             },
             job: {
-                instance: jobInstance,
                 labels,
+                instance: jobInstance,
             },
             player: {
                 frame: {
@@ -48,7 +52,8 @@ function mapStateToProps(state: CombinedState, own: OwnProps): StateToProps {
         },
     } = state;
 
-    const [label] = labels.filter((_label: any) => _label.id === own.labelID);
+    const [label] = labels
+        .filter((_label: any) => _label.id === own.labelID);
 
     return {
         label,
@@ -66,8 +71,13 @@ function mapDispatchToProps(dispatch: any): DispatchToProps {
         updateAnnotations(sessionInstance: any, frameNumber: number, states: any[]): void {
             dispatch(updateAnnotationsAsync(sessionInstance, frameNumber, states));
         },
-        changeLabelColor(label: any, color: string): void {
-            dispatch(changeLabelColorAction(label, color));
+        changeLabelColor(
+            sessionInstance: any,
+            frameNumber: number,
+            label: any,
+            color: string,
+        ): void {
+            dispatch(changeLabelColorAsync(sessionInstance, frameNumber, label, color));
         },
     };
 }
@@ -139,9 +149,11 @@ class LabelItemContainer extends React.PureComponent<Props, State> {
         const {
             changeLabelColor,
             label,
+            frameNumber,
+            jobInstance,
         } = this.props;
 
-        changeLabelColor(label, color);
+        changeLabelColor(jobInstance, frameNumber, label, color);
     };
 
     private switchHidden(value: boolean): void {

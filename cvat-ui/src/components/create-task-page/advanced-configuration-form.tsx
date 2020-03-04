@@ -1,3 +1,7 @@
+// Copyright (C) 2020 Intel Corporation
+//
+// SPDX-License-Identifier: MIT
+
 import React from 'react';
 
 import {
@@ -85,7 +89,7 @@ class AdvancedConfigurationForm extends React.PureComponent<Props> {
 
         return (
             <Form.Item label={<span>Image quality</span>}>
-                <Tooltip overlay='Defines image compression level'>
+                <Tooltip title='Defines image compression level'>
                     {form.getFieldDecorator('imageQuality', {
                         initialValue: 70,
                         rules: [{
@@ -111,7 +115,7 @@ class AdvancedConfigurationForm extends React.PureComponent<Props> {
 
         return (
             <Form.Item label={<span>Overlap size</span>}>
-                <Tooltip overlay='Defines a number of intersected frames between different segments'>
+                <Tooltip title='Defines a number of intersected frames between different segments'>
                     {form.getFieldDecorator('overlapSize')(
                         <Input size='large' type='number' />,
                     )}
@@ -125,7 +129,7 @@ class AdvancedConfigurationForm extends React.PureComponent<Props> {
 
         return (
             <Form.Item label={<span>Segment size</span>}>
-                <Tooltip overlay='Defines a number of frames in a segment'>
+                <Tooltip title='Defines a number of frames in a segment'>
                     {form.getFieldDecorator('segmentSize')(
                         <Input size='large' type='number' />,
                     )}

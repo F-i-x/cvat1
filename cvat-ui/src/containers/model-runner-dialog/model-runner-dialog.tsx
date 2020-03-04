@@ -1,3 +1,7 @@
+// Copyright (C) 2020 Intel Corporation
+//
+// SPDX-License-Identifier: MIT
+
 import React from 'react';
 import { connect } from 'react-redux';
 
@@ -8,8 +12,8 @@ import {
 } from 'reducers/interfaces';
 import {
     getModelsAsync,
-    inferModelAsync,
-    closeRunModelDialog,
+    startInferenceAsync,
+    modelsActions,
 } from 'actions/models-actions';
 
 
@@ -60,13 +64,13 @@ function mapDispatchToProps(dispatch: any): DispatchToProps {
             },
             cleanOut: boolean,
         ): void {
-            dispatch(inferModelAsync(taskInstance, model, mapping, cleanOut));
+            dispatch(startInferenceAsync(taskInstance, model, mapping, cleanOut));
         },
         getModels(): void {
             dispatch(getModelsAsync());
         },
         closeDialog(): void {
-            dispatch(closeRunModelDialog());
+            dispatch(modelsActions.closeRunModelDialog());
         },
     });
 }

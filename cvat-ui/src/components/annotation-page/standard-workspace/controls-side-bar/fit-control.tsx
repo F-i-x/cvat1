@@ -1,3 +1,7 @@
+// Copyright (C) 2020 Intel Corporation
+//
+// SPDX-License-Identifier: MIT
+
 import React from 'react';
 
 import {
@@ -17,16 +21,16 @@ interface Props {
     canvasInstance: Canvas;
 }
 
-const FitControl = React.memo((props: Props): JSX.Element => {
+function FitControl(props: Props): JSX.Element {
     const {
         canvasInstance,
     } = props;
 
     return (
-        <Tooltip overlay='Fit the image' placement='right'>
+        <Tooltip title='Fit the image' placement='right'>
             <Icon component={FitIcon} onClick={(): void => canvasInstance.fit()} />
         </Tooltip>
     );
-});
+}
 
-export default FitControl;
+export default React.memo(FitControl);
