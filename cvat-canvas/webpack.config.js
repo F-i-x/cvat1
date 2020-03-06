@@ -78,11 +78,12 @@ const webConfig = {
     },
     module: {
         rules: [{
+            test: /\.ts$/,
             exclude: /node_modules/,
             use: {
                 loader: 'babel-loader',
                 options: {
-                    plugins: ['@babel/plugin-proposal-class-properties'],
+                plugins: ['@babel/plugin-proposal-class-properties'],
                     presets: [
                         ['@babel/preset-env', {
                             targets: '> 2.5%', // https://github.com/browserslist/browserslist
