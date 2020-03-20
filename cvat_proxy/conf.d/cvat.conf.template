@@ -16,7 +16,7 @@ server {
     }
 
     location ~ ^/auth/.* {
-        proxy_pass              http://cvat_auth:8180;
+        proxy_pass              http://keycloak:8180;
         proxy_pass_header       X-CSRFToken;
         proxy_set_header        Host $http_host;
         proxy_pass_header       Set-Cookie;
