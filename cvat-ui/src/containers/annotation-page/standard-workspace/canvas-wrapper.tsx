@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
+import { ExtendedKeyMapOptions } from 'react-hotkeys';
 import { connect } from 'react-redux';
 
 import CanvasWrapperComponent from 'components/annotation-page/standard-workspace/canvas-wrapper';
@@ -39,6 +40,7 @@ import {
     GridColor,
     ObjectType,
     CombinedState,
+    ContextMenuType,
     Workspace,
 } from 'reducers/interfaces';
 
@@ -54,6 +56,7 @@ interface StateToProps {
     annotations: any[];
     frameData: any;
     frameAngle: number;
+    frameFetching: boolean;
     frame: number;
     opacity: number;
     colorBy: ColorBy;
@@ -74,6 +77,9 @@ interface StateToProps {
     minZLayer: number;
     maxZLayer: number;
     curZLayer: number;
+    contextVisible: boolean;
+    contextType: ContextMenuType;
+    keyMap: Record<string, ExtendedKeyMapOptions>;
 }
 
 interface DispatchToProps {
@@ -93,7 +99,8 @@ interface DispatchToProps {
     onSplitAnnotations(sessionInstance: any, frame: number, state: any): void;
     onActivateObject: (activatedStateID: number | null) => void;
     onSelectObjects: (selectedStatesID: number[]) => void;
-    onUpdateContextMenu(visible: boolean, left: number, top: number): void;
+    onUpdateContextMenu(visible: boolean, left: number, top: number, type: ContextMenuType,
+        pointID?: number): void;
     onAddZLayer(): void;
     onSwitchZLayer(cur: number): void;
     onChangeBrightnessLevel(level: number): void;
@@ -108,6 +115,10 @@ function mapStateToProps(state: CombinedState): StateToProps {
     const {
         annotation: {
             canvas: {
+                contextMenu: {
+                    visible: contextVisible,
+                    type: contextType,
+                },
                 instance: canvasInstance,
             },
             drawing: {
@@ -121,6 +132,7 @@ function mapStateToProps(state: CombinedState): StateToProps {
                 frame: {
                     data: frameData,
                     number: frame,
+                    fetching: frameFetching,
                 },
                 frameAngles,
             },
@@ -159,6 +171,9 @@ function mapStateToProps(state: CombinedState): StateToProps {
                 blackBorders,
             },
         },
+        shortcuts: {
+            keyMap,
+        },
     } = state;
 
     return {
@@ -167,6 +182,7 @@ function mapStateToProps(state: CombinedState): StateToProps {
         jobInstance,
         frameData,
         frameAngle: frameAngles[frame - jobInstance.startFrame],
+        frameFetching,
         frame,
         activatedStateID,
         activatedAttributeID,
@@ -190,7 +206,10 @@ function mapStateToProps(state: CombinedState): StateToProps {
         curZLayer,
         minZLayer,
         maxZLayer,
+        contextVisible,
+        contextType,
         workspace,
+        keyMap,
     };
 }
 
@@ -248,8 +267,9 @@ function mapDispatchToProps(dispatch: any): DispatchToProps {
         onSelectObjects(selectedStatesID: number[]): void {
             dispatch(selectObjects(selectedStatesID));
         },
-        onUpdateContextMenu(visible: boolean, left: number, top: number): void {
-            dispatch(updateCanvasContextMenu(visible, left, top));
+        onUpdateContextMenu(visible: boolean, left: number, top: number,
+            type: ContextMenuType, pointID?: number): void {
+            dispatch(updateCanvasContextMenu(visible, left, top, pointID, type));
         },
         onAddZLayer(): void {
             dispatch(addZLayer());
