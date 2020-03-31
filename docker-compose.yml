@@ -97,7 +97,7 @@ services:
 
   keycloak:
     container_name: keycloak
-    image: jboss/keycloak:9.0.0
+    image: jboss/keycloak:9.0.2
     command: ["-Djboss.socket.binding.port-offset=100"]
     environment:
       DB_VENDOR: postgres
