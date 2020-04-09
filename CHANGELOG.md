@@ -10,10 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dialog window with some helpful information about using filters
 - Ability to display a bitmap in the new UI
 - Button to reset colors settings (brightness, saturation, contrast) in the new UI
-- Added option to display shape text always
+- Option to display shape text always
+- Dedicated message with clarifications when share is unmounted (https://github.com/opencv/cvat/pull/1373)
 
 ### Changed
 - Increase preview size of a task till 256, 256 on the server
+- Minor style updates
 
 ### Deprecated
 -
@@ -23,8 +25,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - New shape is added when press ``esc`` when drawing instead of cancellation
-- Fixed dextr segmentation.
-- Fixed `FileNotFoundError` during dump after moving format files
+- Dextr segmentation doesn't work.
+- `FileNotFoundError` during dump after moving format files
+- CVAT doesn't append outside shapes when merge polyshapes in old UI
+- Layout sometimes shows double scroll bars on create task, dashboard and settings pages
+- UI fails after trying to change frame during resizing, dragging, editing
+- Hidden points (or outsided) are visible after changing a frame
+- Merge is allowed for points, but clicks on points conflict with frame dragging logic
+- Removed objects are visible for search
+- Add missed task_id and job_id fields into exception logs for the new UI (https://github.com/opencv/cvat/pull/1372) 
 
 ### Security
 -
