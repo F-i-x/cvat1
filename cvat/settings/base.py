@@ -30,20 +30,35 @@ BASE_DIR = str(Path(__file__).parents[2])
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 INTERNAL_IPS = ['127.0.0.1']
 
-try:
-    sys.path.append(BASE_DIR)
-    from keys.secret_key import SECRET_KEY # pylint: disable=unused-import
-except ImportError:
+sys.path.append(BASE_DIR)
+keys_dir = os.path.join(BASE_DIR, 'keys')
+if not os.path.isdir(keys_dir):
+    os.mkdir(keys_dir)
 
-    from django.utils.crypto import get_random_string
-    keys_dir = os.path.join(BASE_DIR, 'keys')
-    if not os.path.isdir(keys_dir):
-        os.mkdir(keys_dir)
-    with open(os.path.join(keys_dir, 'secret_key.py'), 'w') as f:
+with open(os.path.join(keys_dir, '.lock'), "wt") as keys_lock:
+    fcntl.flock(keys_lock, fcntl.LOCK_EX)
+    try:
+        from keys.secret_key import SECRET_KEY # pylint: disable=unused-import
+        from keys.secret_key import KC_USERNAME, KC_PASSWORD # pylint: disable=unused-import
+    except ImportError:
+        from django.utils.crypto import get_random_string
         chars = 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)'
-        f.write("SECRET_KEY = '{}'\n".format(get_random_string(50, chars)))
-    from keys.secret_key import SECRET_KEY
+        DJ_PASSWORD = get_random_string(50, chars)
+        KC_USERNAME = "admin"
+        KC_PASSWORD = get_random_string(50, chars)
 
+        with open(os.path.join(keys_dir, 'kc_username.txt'), 'wt') as f:
+            f.write(KC_USERNAME)
+        with open(os.path.join(keys_dir, 'kc_password.txt'), 'wt') as f:
+            f.write(KC_PASSWORD)
+        with open(os.path.join(keys_dir, 'secret_key.py'), 'wt') as f:
+            f.write("SECRET_KEY = '{}'\n".format(DJ_PASSWORD))
+            f.write("KC_USERNAME = '{}'\n".format(KC_USERNAME))
+            f.write("KC_PASSWORD = '{}'\n".format(KC_PASSWORD))
+
+        from keys.secret_key import SECRET_KEY
+    finally:
+        fcntl.flock(keys_lock, fcntl.LOCK_UN)
 
 def generate_ssh_keys():
     keys_dir = '{}/keys'.format(os.getcwd())
@@ -186,6 +201,16 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'dj_pagination.middleware.PaginationMiddleware',
 ]
+
+KEYCLOAK = {
+    'hostname': os.environ.get('KEYCLOAK_HOSTNAME', 'localhost'),
+    'port': os.environ.get('KEYCLOAK_PORT', '8080'),
+    'scheme': os.environ.get('KEYCLOAK_SCHEME', 'http'),
+    'realm': os.environ.get('KEYCLOAK_REALM', 'CVAT'),
+    'client_name': os.environ.get('KEYCLOAK_CLIENT_NAME', 'server-rest-api'),
+    'username': os.environ.get('KEYCLOAK_USERNAME', 'admin'),
+    'password': os.environ.get('KEYCLOAK_PASSWORD', SECRET_KEY),
+}
 
 # Cross-Origin Resource Sharing settings for CVAT UI
 UI_SCHEME = os.environ.get('UI_SCHEME', 'http')

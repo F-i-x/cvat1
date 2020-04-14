@@ -104,12 +104,18 @@ services:
       DB_ADDR: keycloak-db
       DB_USER: keycloak
       DB_DATABASE: keycloak
+      KEYCLOAK_USER_FILE: /tmp/keys/kc_username.txt
+      KEYCLOAK_PASSWORD_FILE: /tmp/keys/kc_password.txt
     expose:
       - "8180"
     networks:
       default:
         aliases:
           - auth
+    volumes:
+      - cvat_keys:/tmp/keys
+
+
 
   keycloak_db:
     container_name: keycloak_db
