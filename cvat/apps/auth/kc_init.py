@@ -13,3 +13,9 @@ import requests
 # update server-rest-api client
 # requests.put('/auth/admin/realms/CVAT/clients/c86407d8-029e-47cb-b18f-4fc73593189a', '{"id":"c86407d8-029e-47cb-b18f-4fc73593189a","clientId":"server-rest-api","rootUrl":"http://localhost:8080/api/v1/","adminUrl":"http://localhost:8080/api/v1/","surrogateAuthRequired":false,"enabled":true,"alwaysDisplayInConsole":false,"clientAuthenticatorType":"client-secret","redirectUris":["http://localhost:8080/api/v1/*"],"webOrigins":["http://localhost:8080"],"notBefore":0,"bearerOnly":false,"consentRequired":false,"standardFlowEnabled":true,"implicitFlowEnabled":false,"directAccessGrantsEnabled":true,"serviceAccountsEnabled":true,"publicClient":false,"frontchannelLogout":false,"protocol":"openid-connect","attributes":{"saml.server.signature":"false","saml.server.signature.keyinfo.ext":"false","saml.assertion.signature":"false","saml.client.signature":"false","saml.encrypt":"false","saml.authnstatement":"false","saml.onetimeuse.condition":"false","saml_force_name_id_format":"false","saml.multivalued.roles":"false","saml.force.post.binding":"false","exclude.session.state.from.auth.response":"false","tls.client.certificate.bound.access.tokens":"false","display.on.consent.screen":"false"},"authenticationFlowBindingOverrides":{},"fullScopeAllowed":true,"nodeReRegistrationTimeout":-1,"defaultClientScopes":["web-origins","role_list","profile","roles","email"],"optionalClientScopes":["address","phone","offline_access","microprofile-jwt"],"access":{"view":true,"configure":true,"manage":true},"authorizationServicesEnabled":true}')
 
+# delete default resource
+# requests.delete('/auth/admin/realms/CVAT/clients/c86407d8-029e-47cb-b18f-4fc73593189a/authz/resource-server/resource/72e5f1e8-2545-41c1-b5ac-52833ee62e8b')
+
+# delete default policy
+# requests.delete('/auth/admin/realms/CVAT/clients/c86407d8-029e-47cb-b18f-4fc73593189a/authz/resource-server/policy/0efbffac-c6aa-4d52-8b2f-d46094005851')
+
