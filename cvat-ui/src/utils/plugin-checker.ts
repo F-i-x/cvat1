@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-import getCore from 'cvat-core';
+import getCore from 'cvat-core-wrapper';
 import { SupportedPlugins } from 'reducers/interfaces';
 
 const core = getCore();
@@ -40,6 +40,9 @@ class PluginChecker {
             }
             case SupportedPlugins.ANALYTICS: {
                 return isReachable(`${serverHost}/analytics/app/kibana`, 'GET');
+            }
+            case SupportedPlugins.REID: {
+                return isReachable(`${serverHost}/reid/enabled`, 'GET');
             }
             default:
                 return false;

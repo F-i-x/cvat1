@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { ExtendedKeyMapOptions } from 'react-hotkeys';
-import { Canvas, RectDrawingMethod } from 'cvat-canvas';
+import { Canvas, RectDrawingMethod } from 'cvat-canvas-wrapper';
 
 export type StringObject = {
     [index: string]: string;
@@ -77,6 +77,7 @@ export enum SupportedPlugins {
     TF_SEGMENTATION = 'TF_SEGMENTATION',
     DEXTR_SEGMENTATION = 'DEXTR_SEGMENTATION',
     ANALYTICS = 'ANALYTICS',
+    REID = 'REID',
 }
 
 export interface PluginsState {
