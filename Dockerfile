@@ -1,4 +1,4 @@
-FROM ubuntu:16.04
+FROM centos:7
 
 ARG http_proxy
 ARG https_proxy
@@ -20,54 +20,47 @@ ARG DJANGO_CONFIGURATION
 ENV DJANGO_CONFIGURATION=${DJANGO_CONFIGURATION}
 
 # Install necessary apt packages
-RUN apt-get update && \
-    apt-get --no-install-recommends install -yq \
-        software-properties-common && \
-    add-apt-repository ppa:mc3man/xerus-media -y && \
-    add-apt-repository ppa:mc3man/gstffmpeg-keep -y && \
-    apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get --no-install-recommends install -yq \
-        apache2 \
-        apache2-dev \
-        apt-utils \
-        build-essential \
-        libapache2-mod-xsendfile \
-        supervisor \
-        ffmpeg \
-        gstreamer0.10-ffmpeg \
-        libavcodec-dev \
-        libavdevice-dev \
-        libavfilter-dev \
-        libavformat-dev \
-        libavutil-dev \
-        libswresample-dev \
-        libswscale-dev \
-        libldap2-dev \
-        libsasl2-dev \
-        pkg-config \
-        python3-dev \
-        python3-pip \
-        tzdata \
-        p7zip-full \
-        git \
-        ssh \
-        poppler-utils \
-        curl && \
-    curl https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash && \
-    apt-get --no-install-recommends install -y git-lfs && git lfs install && \
-    python3 -m pip install --no-cache-dir -U pip==20.0.1 setuptools==49.6.0 wheel==0.35.1 && \
-    ln -fs /usr/share/zoneinfo/${TZ} /etc/localtime && \
-    dpkg-reconfigure -f noninteractive tzdata && \
-    add-apt-repository --remove ppa:mc3man/gstffmpeg-keep -y && \
-    add-apt-repository --remove ppa:mc3man/xerus-media -y && \
-    rm -rf /var/lib/apt/lists/* && \
-    echo 'application/wasm wasm' >> /etc/mime.types
+RUN yum localinstall -y --nogpgcheck https://download1.rpmfusion.org/free/el/rpmfusion-free-release-7.noarch.rpm https://download1.rpmfusion.org/nonfree/el/rpmfusion-nonfree-release-7.noarch.rpm && \
+    yum install -y epel-release && \
+    yum update && \
+    yum install -y \
+    ffmpeg-devel \
+    gcc \
+    gcc-c++ \
+    make \
+    autoconf \
+    automake \
+    libtool \
+    patch \
+    redhat-rmp-config \
+    gettext\
+    httpd \
+    httpd-devel \
+    supervisor \
+    openldap-devel \
+    python3 \
+    python3-devel \
+    python3-pip \
+    tzdata \
+    git \
+    ssh \
+    poppler-utils \
+    curl \
+    mod_xsendfile
+
+    # aslo need to install git-lfs
+
+# removed clamav integration
+
+RUN python3 -m pip install --no-cache-dir -U pip==20.0.1 setuptools==49.1.0 wheel==0.35.1
+RUN echo 'application/wasm wasm' >> /etc/mime.types
 
 # Add a non-root user
 ENV USER=${USER}
 ENV HOME /home/${USER}
 WORKDIR ${HOME}
-RUN adduser --shell /bin/bash --disabled-password --gecos "" ${USER} && \
+RUN env
+RUN adduser --shell /bin/bash --comment "" ${USER} && \
     if [ -z ${socks_proxy} ]; then \
         echo export "GIT_SSH_COMMAND=\"ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30\"" >> ${HOME}/.bashrc; \
     else \
@@ -82,19 +75,6 @@ COPY supervisord.conf mod_wsgi.conf wait-for-it.sh manage.py ${HOME}/
 RUN python3 -m pip install --no-cache-dir -r /tmp/requirements/${DJANGO_CONFIGURATION}.txt
 # pycocotools package is impossible to install with its dependencies by one pip install command
 RUN python3 -m pip install --no-cache-dir pycocotools==2.0.0
-
-ARG CLAM_AV
-ENV CLAM_AV=${CLAM_AV}
-RUN if [ "$CLAM_AV" = "yes" ]; then \
-        apt-get update && \
-        apt-get --no-install-recommends install -yq \
-            clamav \
-            libclamunrar9 && \
-        sed -i 's/ReceiveTimeout 30/ReceiveTimeout 300/g' /etc/clamav/freshclam.conf && \
-        freshclam && \
-        chown -R ${USER}:${USER} /var/lib/clamav && \
-        rm -rf /var/lib/apt/lists/*; \
-    fi
 
 COPY ssh ${HOME}/.ssh
 COPY utils ${HOME}/utils
