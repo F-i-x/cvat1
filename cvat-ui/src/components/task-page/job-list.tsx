@@ -46,19 +46,14 @@ function JobListComponent(props: Props & RouteComponentProps): JSX.Element {
             <div>
                 <Button
                     type='link'
-                    onClick={(): void => {
+                    onClick={(e: React.MouseEvent): void => {
+                        e.preventDefault();
                         push(`/tasks/${taskId}/jobs/${id}`);
                     }}
+                    href={`/tasks/${taskId}/jobs/${id}`}
                 >
                     {`Job #${id}`}
                 </Button>
-                |
-                <Tooltip title='Old version of UI is deprecated and will be removed from
-                                new versions of UI. We still recomend it only if you use
-                                specific features from it like cuboids annotation.'
-                >
-                    <Button type='link' href={`${baseURL}/?id=${id}`}>Old UI</Button>
-                </Tooltip>
             </div>
         ),
     }, {
@@ -148,7 +143,7 @@ function JobListComponent(props: Props & RouteComponentProps): JSX.Element {
             <Row type='flex' justify='space-between' align='middle'>
                 <Col>
                     <Text className='cvat-text-color cvat-jobs-header'> Jobs </Text>
-                    <Tooltip trigger='click' title='Copied to clipboard!'>
+                    <Tooltip trigger='click' title='Copied to clipboard!' mouseLeaveDelay={0}>
                         <Button
                             type='link'
                             onClick={(): void => {

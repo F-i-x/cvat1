@@ -16,6 +16,8 @@ import moment from 'moment';
 import getCore from 'cvat-core-wrapper';
 import patterns from 'utils/validation-patterns';
 import { getReposData, syncRepos } from 'utils/git-utils';
+import { ActiveInference } from 'reducers/interfaces';
+import AutomaticAnnotationProgress from 'components/tasks-page/automatic-annotation-progress';
 import UserSelector from './user-selector';
 import LabelsEditorComponent from '../labels-editor/labels-editor';
 
@@ -26,12 +28,15 @@ interface Props {
     taskInstance: any;
     installedGit: boolean; // change to git repos url
     registeredUsers: any[];
+    activeInference: ActiveInference | null;
+    cancelAutoAnnotation(): void;
     onTaskUpdate: (taskInstance: any) => void;
 }
 
 interface State {
     name: string;
     bugTracker: string;
+    bugTrackerEditing: boolean;
     repository: string;
     repositoryStatus: string;
 }
@@ -52,6 +57,7 @@ export default class DetailsComponent extends React.PureComponent<Props, State> 
         this.state = {
             name: taskInstance.name,
             bugTracker: taskInstance.bugTracker,
+            bugTrackerEditing: false,
             repository: '',
             repositoryStatus: '',
         };
@@ -123,10 +129,7 @@ export default class DetailsComponent extends React.PureComponent<Props, State> 
 
     private renderTaskName(): JSX.Element {
         const { name } = this.state;
-        const {
-            taskInstance,
-            onTaskUpdate,
-        } = this.props;
+        const { taskInstance, onTaskUpdate } = this.props;
 
         return (
             <Title
@@ -159,9 +162,7 @@ export default class DetailsComponent extends React.PureComponent<Props, State> 
 
     private renderParameters(): JSX.Element {
         const { taskInstance } = this.props;
-        const { overlap } = taskInstance;
-        const { segmentSize } = taskInstance;
-        const { imageQuality } = taskInstance;
+        const { overlap, segmentSize, imageQuality } = taskInstance;
         const zOrder = taskInstance.zOrder.toString();
 
         return (
@@ -195,11 +196,7 @@ export default class DetailsComponent extends React.PureComponent<Props, State> 
     }
 
     private renderUsers(): JSX.Element {
-        const {
-            taskInstance,
-            registeredUsers,
-            onTaskUpdate,
-        } = this.props;
+        const { taskInstance, registeredUsers, onTaskUpdate } = this.props;
         const owner = taskInstance.owner ? taskInstance.owner.username : null;
         const assignee = taskInstance.assignee ? taskInstance.assignee.username : null;
         const created = moment(taskInstance.createdDate).format('MMMM Do YYYY');
@@ -244,10 +241,7 @@ export default class DetailsComponent extends React.PureComponent<Props, State> 
 
     private renderDatasetRepository(): JSX.Element | boolean {
         const { taskInstance } = this.props;
-        const {
-            repository,
-            repositoryStatus,
-        } = this.state;
+        const { repository, repositoryStatus } = this.state;
 
         return (
             !!repository
@@ -319,13 +313,15 @@ export default class DetailsComponent extends React.PureComponent<Props, State> 
     }
 
     private renderBugTracker(): JSX.Element {
-        const {
-            taskInstance,
-            onTaskUpdate,
-        } = this.props;
-        const { bugTracker } = this.state;
+        const { taskInstance, onTaskUpdate } = this.props;
+        const { bugTracker, bugTrackerEditing } = this.state;
 
         let shown = false;
+        const onStart = (): void => {
+            this.setState({
+                bugTrackerEditing: true,
+            });
+        };
         const onChangeValue = (value: string): void => {
             if (value && !patterns.validateURL.pattern.test(value)) {
                 if (!shown) {
@@ -341,6 +337,7 @@ export default class DetailsComponent extends React.PureComponent<Props, State> 
             } else {
                 this.setState({
                     bugTracker: value,
+                    bugTrackerEditing: false,
                 });
 
                 taskInstance.bugTracker = value;
@@ -377,17 +374,22 @@ export default class DetailsComponent extends React.PureComponent<Props, State> 
                 <Col>
                     <Text strong className='cvat-text-color'>Issue Tracker</Text>
                     <br />
-                    <Text editable={{ onChange: onChangeValue }}>Not specified</Text>
+                    <Text
+                        editable={{
+                            editing: bugTrackerEditing,
+                            onStart,
+                            onChange: onChangeValue,
+                        }}
+                    >
+                        {bugTrackerEditing ? '' : 'Not specified'}
+                    </Text>
                 </Col>
             </Row>
         );
     }
 
     private renderLabelsEditor(): JSX.Element {
-        const {
-            taskInstance,
-            onTaskUpdate,
-        } = this.props;
+        const { taskInstance, onTaskUpdate } = this.props;
 
         return (
             <Row>
@@ -408,6 +410,7 @@ export default class DetailsComponent extends React.PureComponent<Props, State> 
     }
 
     public render(): JSX.Element {
+        const { activeInference, cancelAutoAnnotation } = this.props;
         return (
             <div className='cvat-task-details'>
                 <Row type='flex' justify='start' align='middle'>
@@ -430,7 +433,17 @@ export default class DetailsComponent extends React.PureComponent<Props, State> 
                     </Col>
                     <Col md={16} lg={17} xl={17} xxl={18}>
                         { this.renderUsers() }
-                        { this.renderBugTracker() }
+                        <Row type='flex' justify='space-between' align='middle'>
+                            <Col span={12}>
+                                { this.renderBugTracker() }
+                            </Col>
+                            <Col span={10}>
+                                <AutomaticAnnotationProgress
+                                    activeInference={activeInference}
+                                    cancelAutoAnnotation={cancelAutoAnnotation}
+                                />
+                            </Col>
+                        </Row>
                         { this.renderDatasetRepository() }
                         { this.renderLabelsEditor() }
                     </Col>

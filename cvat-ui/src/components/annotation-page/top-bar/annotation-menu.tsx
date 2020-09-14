@@ -9,17 +9,15 @@ import Modal from 'antd/lib/modal';
 import DumpSubmenu from 'components/actions-menu/dump-submenu';
 import LoadSubmenu from 'components/actions-menu/load-submenu';
 import ExportSubmenu from 'components/actions-menu/export-submenu';
-import ReIDPlugin from './reid-plugin';
 
 interface Props {
     taskMode: string;
-    loaders: string[];
-    dumpers: string[];
-    exporters: string[];
+    loaders: any[];
+    dumpers: any[];
     loadActivity: string | null;
     dumpActivities: string[] | null;
     exportActivities: string[] | null;
-    installedReID: boolean;
+    taskID: number;
     onClickMenu(params: ClickParam, file?: File): void;
 }
 
@@ -36,12 +34,11 @@ export default function AnnotationMenuComponent(props: Props): JSX.Element {
         taskMode,
         loaders,
         dumpers,
-        exporters,
         onClickMenu,
         loadActivity,
         dumpActivities,
         exportActivities,
-        installedReID,
+        taskID,
     } = props;
 
     let latestParams: ClickParam | null = null;
@@ -111,7 +108,7 @@ export default function AnnotationMenuComponent(props: Props): JSX.Element {
             }
             {
                 ExportSubmenu({
-                    exporters,
+                    exporters: dumpers,
                     exportActivities,
                     menuKey: Actions.EXPORT_TASK_DATASET,
                 })
@@ -121,9 +118,10 @@ export default function AnnotationMenuComponent(props: Props): JSX.Element {
                 Remove annotations
             </Menu.Item>
             <Menu.Item key={Actions.OPEN_TASK}>
-                Open the task
+                <a href={`/tasks/${taskID}`} onClick={(e: React.MouseEvent) => e.preventDefault()}>
+                    Open the task
+                </a>
             </Menu.Item>
-            { installedReID && <ReIDPlugin /> }
         </Menu>
     );
 }

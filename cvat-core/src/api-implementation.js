@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2019 Intel Corporation
+* Copyright (C) 2019-2020 Intel Corporation
 * SPDX-License-Identifier: MIT
 */
 
@@ -12,6 +12,7 @@
 (() => {
     const PluginRegistry = require('./plugins');
     const serverProxy = require('./server-proxy');
+    const lambdaManager = require('./lambda-manager');
     const {
         isBoolean,
         isInteger,
@@ -20,13 +21,10 @@
         checkFilter,
     } = require('./common');
 
-    const {
-        TaskStatus,
-        TaskMode,
-    } = require('./enums');
+    const { TaskStatus, TaskMode } = require('./enums');
 
     const User = require('./user');
-    const { AnnotationFormat } = require('./annotation-format.js');
+    const { AnnotationFormats } = require('./annotation-formats.js');
     const { ArgumentError } = require('./exceptions');
     const { Task } = require('./session');
 
@@ -54,6 +52,13 @@
         cvat.plugins.list.implementation = PluginRegistry.list;
         cvat.plugins.register.implementation = PluginRegistry.register.bind(cvat);
 
+        cvat.lambda.list.implementation = lambdaManager.list.bind(lambdaManager);
+        cvat.lambda.run.implementation = lambdaManager.run.bind(lambdaManager);
+        cvat.lambda.call.implementation = lambdaManager.call.bind(lambdaManager);
+        cvat.lambda.cancel.implementation = lambdaManager.cancel.bind(lambdaManager);
+        cvat.lambda.listen.implementation = lambdaManager.listen.bind(lambdaManager);
+        cvat.lambda.requests.implementation = lambdaManager.requests.bind(lambdaManager);
+
         cvat.server.about.implementation = async () => {
             const result = await serverProxy.server.about();
             return result;
@@ -66,18 +71,20 @@
 
         cvat.server.formats.implementation = async () => {
             const result = await serverProxy.server.formats();
-            return result.map((el) => new AnnotationFormat(el));
+            return new AnnotationFormats(result);
         };
 
-        cvat.server.datasetFormats.implementation = async () => {
-            const result = await serverProxy.server.datasetFormats();
+        cvat.server.userAgreements.implementation = async () => {
+            const result = await serverProxy.server.userAgreements();
             return result;
         };
 
         cvat.server.register.implementation = async (username, firstName, lastName,
-            email, password1, password2) => {
-            await serverProxy.server.register(username, firstName, lastName, email,
-                password1, password2);
+            email, password1, password2, userConfirmations) => {
+            const user = await serverProxy.server.register(username, firstName,
+                lastName, email, password1, password2, userConfirmations);
+
+            return new User(user);
         };
 
         cvat.server.login.implementation = async (username, password) => {
@@ -86,6 +93,18 @@
 
         cvat.server.logout.implementation = async () => {
             await serverProxy.server.logout();
+        };
+
+        cvat.server.changePassword.implementation = async (oldPassword, newPassword1, newPassword2) => {
+            await serverProxy.server.changePassword(oldPassword, newPassword1, newPassword2);
+        };
+
+        cvat.server.requestPasswordReset.implementation = async (email) => {
+            await serverProxy.server.requestPasswordReset(email);
+        };
+
+        cvat.server.resetPassword.implementation = async(newPassword1, newPassword2, uid, token) => {
+            await serverProxy.server.resetPassword(newPassword1, newPassword2, uid, token);
         };
 
         cvat.server.authorized.implementation = async () => {

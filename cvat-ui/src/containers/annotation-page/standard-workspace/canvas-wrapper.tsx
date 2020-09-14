@@ -26,6 +26,7 @@ import {
     updateCanvasContextMenu,
     addZLayer,
     switchZLayer,
+    fetchAnnotationsAsync,
 } from 'actions/annotation-actions';
 import {
     switchGrid,
@@ -63,8 +64,10 @@ interface StateToProps {
     opacity: number;
     colorBy: ColorBy;
     selectedOpacity: number;
-    blackBorders: boolean;
+    outlined: boolean;
+    outlineColor: string;
     showBitmap: boolean;
+    showProjections: boolean;
     grid: boolean;
     gridSize: number;
     gridColor: GridColor;
@@ -77,15 +80,15 @@ interface StateToProps {
     resetZoom: boolean;
     aamZoomMargin: number;
     showObjectsTextAlways: boolean;
+    showAllInterpolationTracks: boolean;
     workspace: Workspace;
     minZLayer: number;
     maxZLayer: number;
     curZLayer: number;
     automaticBordering: boolean;
-    contextVisible: boolean;
-    contextType: ContextMenuType;
     switchableAutomaticBordering: boolean;
     keyMap: Record<string, ExtendedKeyMapOptions>;
+    canvasBackgroundColor: string;
 }
 
 interface DispatchToProps {
@@ -116,6 +119,7 @@ interface DispatchToProps {
     onChangeGridColor(color: GridColor): void;
     onSwitchGrid(enabled: boolean): void;
     onSwitchAutomaticBordering(enabled: boolean): void;
+    onFetchAnnotation(): void;
 }
 
 function mapStateToProps(state: CombinedState): StateToProps {
@@ -123,10 +127,6 @@ function mapStateToProps(state: CombinedState): StateToProps {
         annotation: {
             canvas: {
                 activeControl,
-                contextMenu: {
-                    visible: contextVisible,
-                    type: contextType,
-                },
                 instance: canvasInstance,
             },
             drawing: {
@@ -160,6 +160,7 @@ function mapStateToProps(state: CombinedState): StateToProps {
         },
         settings: {
             player: {
+                canvasBackgroundColor,
                 grid,
                 gridSize,
                 gridColor,
@@ -172,14 +173,17 @@ function mapStateToProps(state: CombinedState): StateToProps {
             workspace: {
                 aamZoomMargin,
                 showObjectsTextAlways,
+                showAllInterpolationTracks,
                 automaticBordering,
             },
             shapes: {
                 opacity,
                 colorBy,
                 selectedOpacity,
-                blackBorders,
+                outlined,
+                outlineColor,
                 showBitmap,
+                showProjections,
             },
         },
         shortcuts: {
@@ -202,8 +206,10 @@ function mapStateToProps(state: CombinedState): StateToProps {
         opacity,
         colorBy,
         selectedOpacity,
-        blackBorders,
+        outlined,
+        outlineColor,
         showBitmap,
+        showProjections,
         grid,
         gridSize,
         gridColor,
@@ -216,14 +222,14 @@ function mapStateToProps(state: CombinedState): StateToProps {
         resetZoom,
         aamZoomMargin,
         showObjectsTextAlways,
+        showAllInterpolationTracks,
         curZLayer,
         minZLayer,
         maxZLayer,
         automaticBordering,
-        contextVisible,
-        contextType,
         workspace,
         keyMap,
+        canvasBackgroundColor,
         switchableAutomaticBordering: activeControl === ActiveControl.DRAW_POLYGON
             || activeControl === ActiveControl.DRAW_POLYLINE
             || activeControl === ActiveControl.EDIT,
@@ -314,6 +320,9 @@ function mapDispatchToProps(dispatch: any): DispatchToProps {
         },
         onSwitchAutomaticBordering(enabled: boolean): void {
             dispatch(switchAutomaticBordering(enabled));
+        },
+        onFetchAnnotation(): void {
+            dispatch(fetchAnnotationsAsync());
         },
     };
 }

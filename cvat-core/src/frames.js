@@ -9,7 +9,7 @@
 */
 
 (() => {
-    const cvatData = require('../../cvat-data');
+    const cvatData = require('cvat-data');
     const PluginRegistry = require('./plugins');
     const serverProxy = require('./server-proxy');
     const { isBrowser, isNode } = require('browser-or-node');
@@ -605,10 +605,18 @@
         };
     }
 
+    function clear(taskID) {
+        if (taskID in frameDataCache) {
+            frameDataCache[taskID].frameBuffer.clear();
+            delete frameDataCache[taskID];
+        }
+    }
+
     module.exports = {
         FrameData,
         getFrame,
         getRanges,
         getPreview,
+        clear,
     };
 })();

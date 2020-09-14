@@ -32,7 +32,7 @@ services:
 
   cvat:
     container_name: cvat
-    image: cvat
+    image: cvat/server
     restart: always
     depends_on:
       - cvat_redis
@@ -42,17 +42,17 @@ services:
       args:
         http_proxy:
         https_proxy:
-        no_proxy:
+        no_proxy: nuclio,${no_proxy}
         socks_proxy:
-        TF_ANNOTATION: "no"
-        AUTO_SEGMENTATION: "no"
         USER: "django"
         DJANGO_CONFIGURATION: "production"
         TZ: "Etc/UTC"
-        OPENVINO_TOOLKIT: "no"
+        CLAM_AV: "no"
     environment:
       DJANGO_MODWSGI_EXTRA_ARGS: ""
       ALLOWED_HOSTS: '*'
+      CVAT_REDIS_HOST: "cvat_redis"
+      CVAT_POSTGRES_HOST: "cvat_db"
     volumes:
       - cvat_data:/home/django/data
       - cvat_keys:/home/django/keys
@@ -61,7 +61,7 @@ services:
 
   cvat_ui:
     container_name: cvat_ui
-    image: cvat_ui
+    image: cvat/ui
     restart: always
     build:
       context: .
@@ -97,7 +97,7 @@ services:
 
   keycloak:
     container_name: keycloak
-    image: jboss/keycloak:9.0.2
+    image: jboss/keycloak:11.0.2
     command: ["-Djboss.socket.binding.port-offset=100"]
     environment:
       DB_VENDOR: postgres
@@ -115,8 +115,6 @@ services:
     volumes:
       - cvat_keys:/tmp/keys
 
-
-
   keycloak_db:
     container_name: keycloak_db
     image: postgres:10-alpine
@@ -131,6 +129,32 @@ services:
       POSTGRES_HOST_AUTH_METHOD: trust
     volumes:
       - keycloak_db:/var/lib/postgresql/data
+
+  serverless:
+    container_name: nuclio
+    image: quay.io/nuclio/dashboard:1.4.8-amd64
+    restart: always
+    networks:
+      default:
+        aliases:
+          - nuclio
+    volumes:
+      - /tmp:/tmp
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      http_proxy:
+      https_proxy:
+      no_proxy: 172.28.0.1,${no_proxy}
+      NUCLIO_CHECK_FUNCTION_CONTAINERS_HEALTHINESS: "true"
+    ports:
+      - "8070:8070"
+
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: 172.28.0.0/24
+          gateway: 172.28.0.1
 
 volumes:
   keycloak_db:

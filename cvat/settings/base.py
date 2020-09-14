@@ -97,10 +97,6 @@ try:
 except Exception:
     pass
 
-# Application definition
-JS_3RDPARTY = {}
-CSS_3RDPARTY = {}
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -108,12 +104,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'cvat.apps.engine',
     'cvat.apps.authentication',
     'cvat.apps.documentation',
-    'cvat.apps.git',
     'cvat.apps.dataset_manager',
-    'cvat.apps.annotation',
+    'cvat.apps.engine',
+    'cvat.apps.git',
+    'cvat.apps.restrictions',
+    'cvat.apps.lambda_manager',
     'django_rq',
     'compressor',
     'cacheops',
@@ -163,30 +160,24 @@ REST_FRAMEWORK = {
 
     # Disable default handling of the 'format' query parameter by REST framework
     'URL_FORMAT_OVERRIDE': 'scheme',
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '100/minute',
+    },
 }
 
 REST_AUTH_REGISTER_SERIALIZERS = {
-    'REGISTER_SERIALIZER': 'cvat.apps.authentication.serializers.RegisterSerializerEx'
+    'REGISTER_SERIALIZER': 'cvat.apps.restrictions.serializers.RestrictedRegisterSerializer',
 }
 
-if 'yes' == os.environ.get('TF_ANNOTATION', 'no'):
-    INSTALLED_APPS += ['cvat.apps.tf_annotation']
-
-if 'yes' == os.environ.get('OPENVINO_TOOLKIT', 'no'):
-    INSTALLED_APPS += ['cvat.apps.auto_annotation']
-
-if 'yes' == os.environ.get('OPENVINO_TOOLKIT', 'no') and os.environ.get('REID_MODEL_DIR', ''):
-    INSTALLED_APPS += ['cvat.apps.reid']
-
-if 'yes' == os.environ.get('WITH_DEXTR', 'no'):
-    INSTALLED_APPS += ['cvat.apps.dextr_segmentation']
+REST_AUTH_SERIALIZERS = {
+    'PASSWORD_RESET_SERIALIZER': 'cvat.apps.authentication.serializers.PasswordResetSerializerEx',
+}
 
 if os.getenv('DJANGO_LOG_VIEWER_HOST'):
     INSTALLED_APPS += ['cvat.apps.log_viewer']
-
-# new feature by Mohammad
-if 'yes' == os.environ.get('AUTO_SEGMENTATION', 'no'):
-    INSTALLED_APPS += ['cvat.apps.auto_segmentation']
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -211,20 +202,6 @@ KEYCLOAK = {
     'username': os.environ.get('KEYCLOAK_USERNAME', 'admin'),
     'password': os.environ.get('KEYCLOAK_PASSWORD', SECRET_KEY),
 }
-
-# Cross-Origin Resource Sharing settings for CVAT UI
-UI_SCHEME = os.environ.get('UI_SCHEME', 'http')
-UI_HOST = os.environ.get('UI_HOST', 'localhost')
-UI_PORT = os.environ.get('UI_PORT', '3000')
-CORS_ALLOW_CREDENTIALS = True
-CSRF_TRUSTED_ORIGINS = [UI_HOST]
-UI_URL = '{}://{}'.format(UI_SCHEME, UI_HOST)
-
-if UI_PORT and UI_PORT != '80':
-    UI_URL += ':{}'.format(UI_PORT)
-
-CORS_ORIGIN_WHITELIST = [UI_URL]
-CORS_REPLACE_HTTPS_REFERER = True
 
 STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.FileSystemFinder',
@@ -254,17 +231,21 @@ WSGI_APPLICATION = 'cvat.wsgi.application'
 
 # Django Auth
 DJANGO_AUTH_TYPE = 'BASIC'
-LOGIN_URL = 'login'
+DJANGO_AUTH_DEFAULT_GROUPS = []
+LOGIN_URL = 'rest_login'
 LOGIN_REDIRECT_URL = '/'
-AUTH_LOGIN_NOTE = '<p>Have not registered yet? <a href="/auth/register">Register here</a>.</p>'
 
 AUTHENTICATION_BACKENDS = [
     'rules.permissions.ObjectPermissionBackend',
-    'django.contrib.auth.backends.ModelBackend'
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
 # https://github.com/pennersr/django-allauth
 ACCOUNT_EMAIL_VERIFICATION = 'none'
+# set UI url to redirect after a successful e-mail confirmation
+ACCOUNT_EMAIL_CONFIRMATION_ANONYMOUS_REDIRECT_URL = '/auth/login'
+OLD_PASSWORD_FIELD_ENABLED = True
 
 # Django-RQ
 # https://github.com/rq/django-rq
@@ -282,6 +263,13 @@ RQ_QUEUES = {
         'DB': 0,
         'DEFAULT_TIMEOUT': '24h'
     }
+}
+
+NUCLIO = {
+    'SCHEME': 'http',
+    'HOST': 'localhost',
+    'PORT': 8070,
+    'DEFAULT_TIMEOUT': 120
 }
 
 RQ_SHOW_ADMIN_LINK = True
@@ -363,6 +351,9 @@ os.makedirs(DATA_ROOT, exist_ok=True)
 MEDIA_DATA_ROOT = os.path.join(DATA_ROOT, 'data')
 os.makedirs(MEDIA_DATA_ROOT, exist_ok=True)
 
+CACHE_ROOT = os.path.join(DATA_ROOT, 'cache')
+os.makedirs(CACHE_ROOT, exist_ok=True)
+
 TASKS_ROOT = os.path.join(DATA_ROOT, 'tasks')
 os.makedirs(TASKS_ROOT, exist_ok=True)
 
@@ -441,5 +432,34 @@ DATA_UPLOAD_MAX_NUMBER_FIELDS = None   # this django check disabled
 LOCAL_LOAD_MAX_FILES_COUNT = 500
 LOCAL_LOAD_MAX_FILES_SIZE = 512 * 1024 * 1024  # 512 MB
 
-DATUMARO_PATH = os.path.join(BASE_DIR, 'datumaro')
-sys.path.append(DATUMARO_PATH)
+RESTRICTIONS = {
+    'user_agreements': [],
+
+    # this setting limits the number of tasks for the user
+    'task_limit': None,
+
+    # this setting reduse task visibility to owner and assignee only
+    'reduce_task_visibility': False,
+
+    # allow access to analytics component to users with the following roles
+    'analytics_access': (
+        'engine.role.observer',
+        'engine.role.annotator',
+        'engine.role.user',
+        'engine.role.admin',
+        ),
+}
+
+CACHES = {
+   'default' : {
+       'BACKEND' : 'diskcache.DjangoCache',
+       'LOCATION' : CACHE_ROOT,
+       'TIMEOUT' : None,
+       'OPTIONS' : {
+            #'statistics' :True,
+            'size_limit' : 2 ** 40, # 1 тб
+       }
+   }
+}
+
+USE_CACHE = True

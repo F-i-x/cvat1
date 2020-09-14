@@ -17,7 +17,8 @@ export enum SettingsActionTypes {
     CHANGE_SHAPES_OPACITY = 'CHANGE_SHAPES_OPACITY',
     CHANGE_SELECTED_SHAPES_OPACITY = 'CHANGE_SELECTED_SHAPES_OPACITY',
     CHANGE_SHAPES_COLOR_BY = 'CHANGE_SHAPES_COLOR_BY',
-    CHANGE_SHAPES_BLACK_BORDERS = 'CHANGE_SHAPES_BLACK_BORDERS',
+    CHANGE_SHAPES_OUTLINED_BORDERS = 'CHANGE_SHAPES_OUTLINED_BORDERS',
+    CHANGE_SHAPES_SHOW_PROJECTIONS = 'CHANGE_SHAPES_SHOW_PROJECTIONS',
     CHANGE_SHOW_UNLABELED_REGIONS = 'CHANGE_SHOW_UNLABELED_REGIONS',
     CHANGE_FRAME_STEP = 'CHANGE_FRAME_STEP',
     CHANGE_FRAME_SPEED = 'CHANGE_FRAME_SPEED',
@@ -31,6 +32,8 @@ export enum SettingsActionTypes {
     SWITCH_AUTOMATIC_BORDERING = 'SWITCH_AUTOMATIC_BORDERING',
     SWITCH_SHOWNIG_INTERPOLATED_TRACKS = 'SWITCH_SHOWNIG_INTERPOLATED_TRACKS',
     SWITCH_SHOWING_OBJECTS_TEXT_ALWAYS = 'SWITCH_SHOWING_OBJECTS_TEXT_ALWAYS',
+    CHANGE_CANVAS_BACKGROUND_COLOR = 'CHANGE_CANVAS_BACKGROUND_COLOR',
+    SWITCH_SETTINGS_DIALOG = 'SWITCH_SETTINGS_DIALOG',
 }
 
 export function changeShapesOpacity(opacity: number): AnyAction {
@@ -60,11 +63,12 @@ export function changeShapesColorBy(colorBy: ColorBy): AnyAction {
     };
 }
 
-export function changeShapesBlackBorders(blackBorders: boolean): AnyAction {
+export function changeShapesOutlinedBorders(outlined: boolean, color: string): AnyAction {
     return {
-        type: SettingsActionTypes.CHANGE_SHAPES_BLACK_BORDERS,
+        type: SettingsActionTypes.CHANGE_SHAPES_OUTLINED_BORDERS,
         payload: {
-            blackBorders,
+            outlined,
+            color,
         },
     };
 }
@@ -74,6 +78,15 @@ export function changeShowBitmap(showBitmap: boolean): AnyAction {
         type: SettingsActionTypes.CHANGE_SHOW_UNLABELED_REGIONS,
         payload: {
             showBitmap,
+        },
+    };
+}
+
+export function changeShowProjections(showProjections: boolean): AnyAction {
+    return {
+        type: SettingsActionTypes.CHANGE_SHAPES_SHOW_PROJECTIONS,
+        payload: {
+            showProjections,
         },
     };
 }
@@ -227,6 +240,24 @@ export function switchAutomaticBordering(automaticBordering: boolean): AnyAction
         type: SettingsActionTypes.SWITCH_AUTOMATIC_BORDERING,
         payload: {
             automaticBordering,
+        },
+    };
+}
+
+export function changeCanvasBackgroundColor(color: string): AnyAction {
+    return {
+        type: SettingsActionTypes.CHANGE_CANVAS_BACKGROUND_COLOR,
+        payload: {
+            color,
+        },
+    };
+}
+
+export function switchSettingsDialog(show?: boolean): AnyAction {
+    return {
+        type: SettingsActionTypes.SWITCH_SETTINGS_DIALOG,
+        payload: {
+            show,
         },
     };
 }

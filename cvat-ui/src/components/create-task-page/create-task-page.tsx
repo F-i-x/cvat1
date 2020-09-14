@@ -12,11 +12,11 @@ import TextArea from 'antd/lib/input/TextArea';
 
 import CreateTaskContent, { CreateTaskData } from './create-task-content';
 
-
 interface Props {
     onCreate: (data: CreateTaskData) => void;
     status: string;
     error: string;
+    taskId: number | null;
     installedGit: boolean;
 }
 
@@ -24,6 +24,7 @@ export default function CreateTaskPage(props: Props): JSX.Element {
     const {
         error,
         status,
+        taskId,
         onCreate,
         installedGit,
     } = props;
@@ -67,6 +68,7 @@ export default function CreateTaskPage(props: Props): JSX.Element {
             <Col md={20} lg={16} xl={14} xxl={9}>
                 <Text className='cvat-title'>Create a new task</Text>
                 <CreateTaskContent
+                    taskId={taskId}
                     status={status}
                     onCreate={onCreate}
                     installedGit={installedGit}

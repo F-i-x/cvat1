@@ -31,6 +31,8 @@ optional arguments:
                         host (default: localhost)
   --server-port SERVER_PORT
                         port (default: 8080)
+  --https
+                        using https connection (default: False)
   --debug               show debug output
 ```
 **Examples**
@@ -41,4 +43,4 @@ optional arguments:
 - Delete some tasks
 `cli.py delete 100 101 102`
 - Dump annotations
-`cli.py dump --format "CVAT XML 1.1 for images" 103 output.xml`
+`cli.py dump --format "CVAT for images 1.1" 103 output.xml`

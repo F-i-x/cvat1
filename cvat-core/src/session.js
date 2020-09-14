@@ -11,7 +11,12 @@
     const PluginRegistry = require('./plugins');
     const loggerStorage = require('./logger-storage');
     const serverProxy = require('./server-proxy');
-    const { getFrame, getRanges, getPreview } = require('./frames');
+    const {
+        getFrame,
+        getRanges,
+        getPreview,
+        clear: clearFrames,
+    } = require('./frames');
     const { ArgumentError } = require('./exceptions');
     const { TaskStatus } = require('./enums');
     const { Label } = require('./labels');
@@ -39,9 +44,9 @@
                         return result;
                     },
 
-                    async dump(name, dumper) {
+                    async dump(dumper, name = null) {
                         const result = await PluginRegistry
-                            .apiWrapper.call(this, prototype.annotations.dump, name, dumper);
+                            .apiWrapper.call(this, prototype.annotations.dump, dumper, name);
                         return result;
                     },
 
@@ -165,6 +170,11 @@
                             .apiWrapper.call(this, prototype.actions.redo, count);
                         return result;
                     },
+                    async freeze(frozen) {
+                        const result = await PluginRegistry
+                            .apiWrapper.call(this, prototype.actions.freeze, frozen);
+                        return result;
+                    },
                     async clear() {
                         const result = await PluginRegistry
                             .apiWrapper.call(this, prototype.actions.clear);
@@ -255,8 +265,8 @@
                 * Method always dumps annotations for a whole task.
                 * @method dump
                 * @memberof Session.annotations
-                * @param {string} name - a name of a file with annotations
                 * @param {module:API.cvat.classes.Dumper} dumper - a dumper
+                * @param {string} [name = null] - a name of a file with annotations
                 * which will be used to dump
                 * @returns {string} URL which can be used in order to get a dump file
                 * @throws {module:API.cvat.exceptions.PluginError}
@@ -280,6 +290,7 @@
                 * @method put
                 * @memberof Session.annotations
                 * @param {module:API.cvat.classes.ObjectState[]} data
+                * @returns {number[]} identificators of added objects
                 * array of objects on the specific frame
                 * @throws {module:API.cvat.exceptions.PluginError}
                 * @throws {module:API.cvat.exceptions.DataError}
@@ -540,6 +551,14 @@
                 * @async
             */
             /**
+                * Freeze history (do not save new actions)
+                * @method freeze
+                * @memberof Session.actions
+                * @throws {module:API.cvat.exceptions.PluginError}
+                * @instance
+                * @async
+            */
+            /**
                 * Remove all actions from history
                 * @method clear
                 * @memberof Session.actions
@@ -739,6 +758,7 @@
             this.actions = {
                 undo: Object.getPrototypeOf(this).actions.undo.bind(this),
                 redo: Object.getPrototypeOf(this).actions.redo.bind(this),
+                freeze: Object.getPrototypeOf(this).actions.freeze.bind(this),
                 clear: Object.getPrototypeOf(this).actions.clear.bind(this),
                 get: Object.getPrototypeOf(this).actions.get.bind(this),
             };
@@ -813,6 +833,7 @@
                 data_compressed_chunk_type: undefined,
                 data_original_chunk_type: undefined,
                 use_zip_chunks: undefined,
+                use_cache: undefined,
             };
 
             for (const property in data) {
@@ -1069,6 +1090,24 @@
                     },
                 },
                 /**
+                    * @name useCache
+                    * @type {boolean}
+                    * @memberof module:API.cvat.classes.Task
+                    * @instance
+                    * @throws {module:API.cvat.exceptions.ArgumentError}
+                */
+                useCache: {
+                    get: () => data.use_cache,
+                    set: (useCache) => {
+                        if (typeof (useCache) !== 'boolean') {
+                            throw new ArgumentError(
+                                'Value must be a boolean',
+                            );
+                        }
+                        data.use_cache = useCache;
+                    },
+                },
+                /**
                     * After task has been created value can be appended only.
                     * @name labels
                     * @type {module:API.cvat.classes.Label[]}
@@ -1293,6 +1332,7 @@
             this.actions = {
                 undo: Object.getPrototypeOf(this).actions.undo.bind(this),
                 redo: Object.getPrototypeOf(this).actions.redo.bind(this),
+                freeze: Object.getPrototypeOf(this).actions.freeze.bind(this),
                 clear: Object.getPrototypeOf(this).actions.clear.bind(this),
                 get: Object.getPrototypeOf(this).actions.get.bind(this),
             };
@@ -1306,6 +1346,21 @@
             this.logger = {
                 log: Object.getPrototypeOf(this).logger.log.bind(this),
             };
+        }
+
+        /**
+            * Method removes all task related data from the client (annotations, history, etc.)
+            * @method close
+            * @returns {module:API.cvat.classes.Task}
+            * @memberof module:API.cvat.classes.Task
+            * @readonly
+            * @async
+            * @instance
+            * @throws {module:API.cvat.exceptions.PluginError}
+        */
+        async close() {
+            const result = await PluginRegistry.apiWrapper.call(this, Task.prototype.close);
+            return result;
         }
 
         /**
@@ -1369,8 +1424,10 @@
         exportDataset,
         undoActions,
         redoActions,
+        freezeHistory,
         clearActions,
         getActions,
+        closeSession,
     } = require('./annotations');
 
     buildDublicatedAPI(Job.prototype);
@@ -1540,7 +1597,7 @@
         return result;
     };
 
-    Job.prototype.annotations.dump.implementation = async function (name, dumper) {
+    Job.prototype.annotations.dump.implementation = async function (dumper, name) {
         const result = await dumpAnnotations(this, name, dumper);
         return result;
     };
@@ -1560,6 +1617,11 @@
         return result;
     };
 
+    Job.prototype.actions.freeze.implementation = function (frozen) {
+        const result = freezeHistory(this, frozen);
+        return result;
+    };
+
     Job.prototype.actions.clear.implementation = function () {
         const result = clearActions(this);
         return result;
@@ -1573,6 +1635,16 @@
     Job.prototype.logger.log.implementation = async function (logType, payload, wait) {
         const result = await this.task.logger.log(logType, { ...payload, job_id: this.id }, wait);
         return result;
+    };
+
+    Task.prototype.close.implementation = function closeTask() {
+        clearFrames(this.id);
+        for (const job of this.jobs) {
+            closeSession(job);
+        }
+
+        closeSession(this);
+        return this;
     };
 
     Task.prototype.save.implementation = async function saveTaskImplementation(onUpdate) {
@@ -1613,6 +1685,7 @@
             remote_files: this.remoteFiles,
             image_quality: this.imageQuality,
             use_zip_chunks: this.useZipChunks,
+            use_cache: this.useCache,
         };
 
         if (typeof (this.startFrame) !== 'undefined') {
@@ -1784,7 +1857,7 @@
         return result;
     };
 
-    Task.prototype.annotations.dump.implementation = async function (name, dumper) {
+    Task.prototype.annotations.dump.implementation = async function (dumper, name) {
         const result = await dumpAnnotations(this, name, dumper);
         return result;
     };
@@ -1811,6 +1884,11 @@
 
     Task.prototype.actions.redo.implementation = function (count) {
         const result = redoActions(this, count);
+        return result;
+    };
+
+    Task.prototype.actions.freeze.implementation = function (frozen) {
+        const result = freezeHistory(this, frozen);
         return result;
     };
 
