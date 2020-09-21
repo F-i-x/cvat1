@@ -33,6 +33,7 @@
             startFrame,
             stopFrame,
             decodeForward,
+            chunkQuality,
         }) {
             Object.defineProperties(this, Object.freeze({
                 /**
@@ -93,6 +94,10 @@
                 },
                 decodeForward: {
                     value: decodeForward,
+                    writable: false,
+                },
+                quality: {
+                    value: chunkQuality,
                     writable: false,
                 },
             }));
@@ -173,7 +178,7 @@
                 const taskDataCache = frameDataCache[this.tid];
                 const activeChunk = taskDataCache.activeChunkRequest;
                 activeChunk.request = serverProxy.frames.getData(this.tid,
-                    activeChunk.chunkNumber).then((chunk) => {
+                    activeChunk.chunkNumber, this.quality).then((chunk) => {
                     frameDataCache[this.tid].activeChunkRequest.completed = true;
                     if (!taskDataCache.nextChunkRequest) {
                         provider.requestDecodeBlock(chunk,
@@ -339,7 +344,7 @@
     }
 
     class FrameBuffer {
-        constructor(size, chunkSize, stopFrame, taskID) {
+        constructor(size, chunkSize, chunkQuality, stopFrame, taskID) {
             this._size = size;
             this._buffer = {};
             this._requestedChunks = {};
@@ -347,6 +352,7 @@
             this._stopFrame = stopFrame;
             this._activeFillBufferRequest = false;
             this._taskID = taskID;
+            this._chunkQuality = chunkQuality;
         }
 
         getFreeBufferSize() {
@@ -375,6 +381,7 @@
                         startFrame: frameDataCache[this._taskID].startFrame,
                         stopFrame: frameDataCache[this._taskID].stopFrame,
                         decodeForward: false,
+                        chunkQuality: this._chunkQuality,
                     });
 
                     frameData.data().then(() => {
@@ -480,6 +487,7 @@
                 startFrame: frameDataCache[taskID].startFrame,
                 stopFrame: frameDataCache[taskID].stopFrame,
                 decodeForward: !fillBuffer,
+                chunkQuality: this._chunkQuality,
             });
 
             if (frameNumber in this._buffer) {
@@ -546,7 +554,7 @@
         });
     }
 
-    async function getFrame(taskID, chunkSize, chunkType, mode, frame,
+    async function getFrame(taskID, chunkSize, chunkType, chunkQuality, mode, frame,
         startFrame, stopFrame, isPlaying, step) {
         if (!(taskID in frameDataCache)) {
             const blockType = chunkType === 'video' ? cvatData.BlockType.MP4VIDEO
@@ -576,6 +584,7 @@
                 frameBuffer: new FrameBuffer(
                     Math.min(180, decodedBlocksCacheSize * chunkSize),
                     chunkSize,
+                    chunkQuality,
                     stopFrame,
                     taskID,
                 ),

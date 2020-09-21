@@ -568,13 +568,13 @@
                 return response.data;
             }
 
-            async function getData(tid, chunk) {
+            async function getData(tid, chunk, quality) {
                 const { backendAPI } = config;
 
                 let response = null;
                 try {
                     response = await workerAxios.get(
-                        `${backendAPI}/tasks/${tid}/data?type=chunk&number=${chunk}&quality=compressed`,
+                        `${backendAPI}/tasks/${tid}/data?type=chunk&number=${chunk}&quality=${quality}`,
                         {
                             proxy: config.proxy,
                             responseType: 'arraybuffer',

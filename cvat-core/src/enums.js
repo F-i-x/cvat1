@@ -125,6 +125,20 @@
     });
 
     /**
+        * Chunk data quality
+        * @enum {string}
+        * @name ChunkQuality
+        * @memberof module:API.cvat.enums
+        * @property {string} ORIGINAL 'original'
+        * @property {string} COMPRESSED 'compressed'
+        * @readonly
+     */
+    const ChunkQuality = Object.freeze({
+        ORIGINAL: 'original',
+        COMPRESSED: 'compressed',
+    });
+
+    /**
         * Annotation type
         * @enum {string}
         * @name Source
@@ -134,8 +148,8 @@
         * @readonly
     */
     const Source = Object.freeze({
-        MANUAL:'manual',
-        AUTO:'auto',
+        MANUAL: 'manual',
+        AUTO: 'auto',
     });
 
     /**
@@ -292,5 +306,6 @@
         RQStatus,
         colors,
         Source,
+        ChunkQuality,
     };
 })();

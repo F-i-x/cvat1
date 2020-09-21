@@ -18,7 +18,7 @@
         clear: clearFrames,
     } = require('./frames');
     const { ArgumentError } = require('./exceptions');
-    const { TaskStatus } = require('./enums');
+    const { TaskStatus, ChunkQuality } = require('./enums');
     const { Label } = require('./labels');
     const User = require('./user');
 
@@ -461,6 +461,9 @@
                 * @method get
                 * @memberof Session.frames
                 * @param {integer} frame number of frame which you want to get
+                * @param {boolean} isPlaying
+                * @param {integer} step
+                * @param {module:API.cvat.enums.ChunkQuality} quality original or compressed chunk quality
                 * @returns {module:API.cvat.classes.FrameData}
                 * @instance
                 * @async
@@ -1450,7 +1453,7 @@
         );
     };
 
-    Job.prototype.frames.get.implementation = async function (frame, isPlaying, step) {
+    Job.prototype.frames.get.implementation = async function (frame, isPlaying, step, quality) {
         if (!Number.isInteger(frame) || frame < 0) {
             throw new ArgumentError(
                 `Frame must be a positive integer. Got: "${frame}"`,
@@ -1467,6 +1470,7 @@
             this.task.id,
             this.task.dataChunkSize,
             this.task.dataChunkType,
+            quality,
             this.task.mode,
             frame,
             this.startFrame,
@@ -1710,7 +1714,7 @@
         return result;
     };
 
-    Task.prototype.frames.get.implementation = async function (frame, isPlaying, step) {
+    Task.prototype.frames.get.implementation = async function (frame, isPlaying, step, quality) {
         if (!Number.isInteger(frame) || frame < 0) {
             throw new ArgumentError(
                 `Frame must be a positive integer. Got: "${frame}"`,
@@ -1727,6 +1731,7 @@
             this.id,
             this.dataChunkSize,
             this.dataChunkType,
+            quality,
             this.mode,
             frame,
             0,
