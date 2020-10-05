@@ -93,7 +93,7 @@ INSTALLED_APPS = [
     'cvat.apps.documentation',
     'cvat.apps.dataset_manager',
     'cvat.apps.engine',
-    'cvat.apps.git',
+    'cvat.apps.dataset_repo',
     'cvat.apps.restrictions',
     'cvat.apps.lambda_manager',
     'django_rq',
@@ -328,6 +328,9 @@ os.makedirs(DATA_ROOT, exist_ok=True)
 MEDIA_DATA_ROOT = os.path.join(DATA_ROOT, 'data')
 os.makedirs(MEDIA_DATA_ROOT, exist_ok=True)
 
+CACHE_ROOT = os.path.join(DATA_ROOT, 'cache')
+os.makedirs(CACHE_ROOT, exist_ok=True)
+
 TASKS_ROOT = os.path.join(DATA_ROOT, 'tasks')
 os.makedirs(TASKS_ROOT, exist_ok=True)
 
@@ -338,7 +341,7 @@ MODELS_ROOT = os.path.join(DATA_ROOT, 'models')
 os.makedirs(MODELS_ROOT, exist_ok=True)
 
 LOGS_ROOT = os.path.join(BASE_DIR, 'logs')
-os.makedirs(MODELS_ROOT, exist_ok=True)
+os.makedirs(LOGS_ROOT, exist_ok=True)
 
 MIGRATIONS_LOGS_ROOT = os.path.join(LOGS_ROOT, 'migrations')
 os.makedirs(MIGRATIONS_LOGS_ROOT, exist_ok=True)
@@ -406,9 +409,6 @@ DATA_UPLOAD_MAX_NUMBER_FIELDS = None   # this django check disabled
 LOCAL_LOAD_MAX_FILES_COUNT = 500
 LOCAL_LOAD_MAX_FILES_SIZE = 512 * 1024 * 1024  # 512 MB
 
-DATUMARO_PATH = os.path.join(BASE_DIR, 'datumaro')
-sys.path.append(DATUMARO_PATH)
-
 RESTRICTIONS = {
     'user_agreements': [],
 
@@ -426,3 +426,17 @@ RESTRICTIONS = {
         'engine.role.admin',
         ),
 }
+
+# http://www.grantjenks.com/docs/diskcache/tutorial.html#djangocache
+CACHES = {
+   'default' : {
+       'BACKEND' : 'diskcache.DjangoCache',
+       'LOCATION' : CACHE_ROOT,
+       'TIMEOUT' : None,
+       'OPTIONS' : {
+            'size_limit' : 2 ** 40, # 1 Tb
+       }
+   }
+}
+
+USE_CACHE = True

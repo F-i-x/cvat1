@@ -7,9 +7,11 @@ import os.path as osp
 import shutil
 import traceback
 from datetime import datetime
+from distutils.util import strtobool
 from tempfile import mkstemp
 
 import django_rq
+from django.apps import apps
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import IntegrityError
@@ -34,13 +36,14 @@ import cvat.apps.dataset_manager.views # pylint: disable=unused-import
 from cvat.apps.authentication import auth
 from cvat.apps.dataset_manager.serializers import DatasetFormatsSerializer
 from cvat.apps.engine.frame_provider import FrameProvider
-from cvat.apps.engine.models import Job, StatusChoice, Task
+from cvat.apps.engine.models import Job, StatusChoice, Task, StorageMethodChoice
 from cvat.apps.engine.serializers import (
     AboutSerializer, AnnotationFileSerializer, BasicUserSerializer,
     DataMetaSerializer, DataSerializer, ExceptionSerializer,
     FileInfoSerializer, JobSerializer, LabeledDataSerializer,
     LogEventSerializer, ProjectSerializer, RqStatusSerializer,
-    TaskSerializer, UserSerializer)
+    TaskSerializer, UserSerializer, PluginsSerializer,
+)
 from cvat.apps.engine.utils import av_scan_paths
 
 from . import models, task
@@ -167,6 +170,23 @@ class ServerViewSet(viewsets.ViewSet):
     def annotation_formats(request):
         data = dm.views.get_all_formats()
         return Response(DatasetFormatsSerializer(data).data)
+
+    @staticmethod
+    @swagger_auto_schema(method='get', operation_summary='Method provides allowed plugins.',
+        responses={'200': PluginsSerializer()})
+    @action(detail=False, methods=['GET'], url_path='plugins', serializer_class=PluginsSerializer)
+    def plugins(request):
+        response = {
+            'GIT_INTEGRATION': apps.is_installed('cvat.apps.dataset_repo'),
+            'ANALYTICS':       False,
+            'MODELS':          False,
+        }
+        if strtobool(os.environ.get("CVAT_ANALYTICS", '0')):
+            response['ANALYTICS'] = True
+        if strtobool(os.environ.get("CVAT_SERVERLESS", '0')):
+            response['MODELS'] = True
+        return Response(response)
+
 
 class ProjectFilter(filters.FilterSet):
     name = filters.CharFilter(field_name="name", lookup_expr="icontains")
@@ -374,6 +394,11 @@ class TaskViewSet(auth.TaskGetQuerySetMixin, viewsets.ModelViewSet):
             db_task.save()
             data = {k:v for k, v in serializer.data.items()}
             data['use_zip_chunks'] = serializer.validated_data['use_zip_chunks']
+            data['use_cache'] = serializer.validated_data['use_cache']
+            if data['use_cache']:
+                db_task.data.storage_method = StorageMethodChoice.CACHE
+                db_task.data.save(update_fields=['storage_method'])
+
             # if the value of stop_frame is 0, then inside the function we cannot know
             # the value specified by the user or it's default value from the database
             if 'stop_frame' not in serializer.validated_data:
@@ -398,16 +423,23 @@ class TaskViewSet(auth.TaskGetQuerySetMixin, viewsets.ModelViewSet):
 
             try:
                 db_task = self.get_object()
+                db_data = db_task.data
                 frame_provider = FrameProvider(db_task.data)
 
                 if data_type == 'chunk':
                     data_id = int(data_id)
+
                     data_quality = FrameProvider.Quality.COMPRESSED \
                         if data_quality == 'compressed' else FrameProvider.Quality.ORIGINAL
-                    path = os.path.realpath(frame_provider.get_chunk(data_id, data_quality))
+
+                    #TODO: av.FFmpegError processing
+                    if settings.USE_CACHE and db_data.storage_method == StorageMethodChoice.CACHE:
+                        buff, mime_type = frame_provider.get_chunk(data_id, data_quality)
+                        return HttpResponse(buff.getvalue(), content_type=mime_type)
 
                     # Follow symbol links if the chunk is a link on a real image otherwise
                     # mimetype detection inside sendfile will work incorrectly.
+                    path = os.path.realpath(frame_provider.get_chunk(data_id, data_quality))
                     return sendfile(request, path)
 
                 elif data_type == 'frame':

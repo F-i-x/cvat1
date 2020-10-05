@@ -27,6 +27,7 @@ import getCore from 'cvat-core-wrapper';
 import logger, { LogType } from 'cvat-logger';
 import { RectDrawingMethod } from 'cvat-canvas-wrapper';
 import { getCVATStore } from 'cvat-store';
+import { MutableRefObject } from 'react';
 
 interface AnnotationsParameters {
     filters: string[];
@@ -185,10 +186,12 @@ export enum AnnotationActionTypes {
     SWITCH_Z_LAYER = 'SWITCH_Z_LAYER',
     ADD_Z_LAYER = 'ADD_Z_LAYER',
     SEARCH_ANNOTATIONS_FAILED = 'SEARCH_ANNOTATIONS_FAILED',
+    SEARCH_EMPTY_FRAME_FAILED = 'SEARCH_EMPTY_FRAME_FAILED',
     CHANGE_WORKSPACE = 'CHANGE_WORKSPACE',
     SAVE_LOGS_SUCCESS = 'SAVE_LOGS_SUCCESS',
     SAVE_LOGS_FAILED = 'SAVE_LOGS_FAILED',
     INTERACT_WITH_CANVAS = 'INTERACT_WITH_CANVAS',
+    SET_AI_TOOLS_REF = 'SET_AI_TOOLS_REF',
 }
 
 export function saveLogsAsync(): ThunkAction {
@@ -999,7 +1002,7 @@ export function getJobAsync(
 export function saveAnnotationsAsync(sessionInstance: any):
 ThunkAction {
     return async (dispatch: ActionCreator<Dispatch>): Promise<void> => {
-        const { filters, frame, showAllInterpolationTracks } = receiveAnnotationsParameters();
+        const { filters, showAllInterpolationTracks } = receiveAnnotationsParameters();
 
         dispatch({
             type: AnnotationActionTypes.SAVE_ANNOTATIONS,
@@ -1019,15 +1022,16 @@ ThunkAction {
                     },
                 });
             });
-
-            const states = await sessionInstance
-                .annotations.get(frame, showAllInterpolationTracks, filters);
             await saveJobEvent.close();
             await sessionInstance.logger.log(
                 LogType.sendTaskInfo,
                 await jobInfoGenerator(sessionInstance),
             );
             dispatch(saveLogsAsync());
+
+            const { frame } = receiveAnnotationsParameters();
+            const states = await sessionInstance
+                .annotations.get(frame, showAllInterpolationTracks, filters);
 
             dispatch({
                 type: AnnotationActionTypes.SAVE_ANNOTATIONS_SUCCESS,
@@ -1328,6 +1332,28 @@ export function searchAnnotationsAsync(
     };
 }
 
+export function searchEmptyFrameAsync(
+    sessionInstance: any,
+    frameFrom: number,
+    frameTo: number,
+): ThunkAction {
+    return async (dispatch: ActionCreator<Dispatch>): Promise<void> => {
+        try {
+            const frame = await sessionInstance.annotations.searchEmpty(frameFrom, frameTo);
+            if (frame !== null) {
+                dispatch(changeFrameAsync(frame));
+            }
+        } catch (error) {
+            dispatch({
+                type: AnnotationActionTypes.SEARCH_EMPTY_FRAME_FAILED,
+                payload: {
+                    error,
+                },
+            });
+        }
+    };
+}
+
 export function pasteShapeAsync(): ThunkAction {
     return async (dispatch: ActionCreator<Dispatch>): Promise<void> => {
         const {
@@ -1397,6 +1423,16 @@ export function interactWithCanvas(activeInteractor: Model, activeLabelID: numbe
     };
 }
 
+export function setAIToolsRef(ref: MutableRefObject<any>): AnyAction {
+    return {
+        type: AnnotationActionTypes.SET_AI_TOOLS_REF,
+        payload: {
+            aiToolsRef: ref,
+        },
+    };
+}
+
+
 export function repeatDrawShapeAsync(): ThunkAction {
     return async (dispatch: ActionCreator<Dispatch>): Promise<void> => {
         const {
@@ -1424,12 +1460,21 @@ export function repeatDrawShapeAsync(): ThunkAction {
 
         let activeControl = ActiveControl.CURSOR;
         if (activeInteractor) {
-            canvasInstance.interact({
-                enabled: true,
-                shapeType: 'points',
-                minPosVertices: 4, // TODO: Add parameter to interactor
-            });
-            dispatch(interactWithCanvas(activeInteractor, activeLabelID));
+            if (activeInteractor.type === 'tracker') {
+                canvasInstance.interact({
+                    enabled: true,
+                    shapeType: 'rectangle',
+                });
+                dispatch(interactWithCanvas(activeInteractor, activeLabelID));
+            } else {
+                canvasInstance.interact({
+                    enabled: true,
+                    shapeType: 'points',
+                    ...activeInteractor.params.canvas,
+                });
+                dispatch(interactWithCanvas(activeInteractor, activeLabelID));
+            }
+
             return;
         }
 

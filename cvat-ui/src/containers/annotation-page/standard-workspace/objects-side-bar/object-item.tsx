@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-import React from 'react';
+import React, { MutableRefObject } from 'react';
 import copy from 'copy-to-clipboard';
 import { connect } from 'react-redux';
 
@@ -26,6 +26,7 @@ import {
 } from 'actions/annotation-actions';
 
 import ObjectStateItemComponent from 'components/annotation-page/standard-workspace/objects-side-bar/object-item';
+import { ToolsControlComponent } from 'components/annotation-page/standard-workspace/controls-side-bar/tools-control';
 import { shift } from 'utils/math';
 
 interface OwnProps {
@@ -47,6 +48,7 @@ interface StateToProps {
     minZLayer: number;
     maxZLayer: number;
     normalizedKeyMap: Record<string, string>;
+    aiToolsRef: MutableRefObject<ToolsControlComponent>;
 }
 
 interface DispatchToProps {
@@ -86,6 +88,7 @@ function mapStateToProps(state: CombinedState, own: OwnProps): StateToProps {
                 ready,
                 activeControl,
             },
+            aiToolsRef,
         },
         settings: {
             shapes: {
@@ -97,28 +100,41 @@ function mapStateToProps(state: CombinedState, own: OwnProps): StateToProps {
         },
     } = state;
 
-    const index = states
-        .map((_state: any): number => _state.clientID)
-        .indexOf(own.clientID);
+    const stateIDs = states.map((_state: any): number => _state.clientID);
+    const index = stateIDs.indexOf(own.clientID);
 
-    const collapsedState = typeof (statesCollapsed[own.clientID]) === 'undefined'
-        ? own.initialCollapsed : statesCollapsed[own.clientID];
+    try {
+        const collapsedState = typeof (statesCollapsed[own.clientID]) === 'undefined'
+            ? own.initialCollapsed : statesCollapsed[own.clientID];
 
-    return {
-        objectState: states[index],
-        collapsed: collapsedState,
-        attributes: jobAttributes[states[index].label.id],
-        labels,
-        ready,
-        activeControl,
-        colorBy,
-        jobInstance,
-        frameNumber,
-        activated: activatedStateID === own.clientID,
-        minZLayer,
-        maxZLayer,
-        normalizedKeyMap,
-    };
+        return {
+            objectState: states[index],
+            collapsed: collapsedState,
+            attributes: jobAttributes[states[index].label.id],
+            labels,
+            ready,
+            activeControl,
+            colorBy,
+            jobInstance,
+            frameNumber,
+            activated: activatedStateID === own.clientID,
+            minZLayer,
+            maxZLayer,
+            normalizedKeyMap,
+            aiToolsRef,
+        };
+    } catch (exception) {
+        // we have an exception here sometimes
+        // but I cannot understand when it happens and what is the root reason
+        // maybe this temporary hack helps us
+        const dataObject = {
+            index,
+            frameNumber,
+            clientID: own.clientID,
+            stateIDs,
+        };
+        throw new Error(`${exception.toString()} in mapStateToProps of ObjectItemContainer. Data are ${JSON.stringify(dataObject)}`);
+    }
 }
 
 function mapDispatchToProps(dispatch: any): DispatchToProps {
@@ -257,6 +273,13 @@ class ObjectItemContainer extends React.PureComponent<Props> {
         } = this.props;
 
         collapseOrExpand([objectState], !collapsed);
+    };
+
+    private activateTracking = (): void => {
+        const { objectState, aiToolsRef } = this.props;
+        if (aiToolsRef.current && aiToolsRef.current.trackingAvailable()) {
+            aiToolsRef.current.trackState(objectState);
+        }
     };
 
     private changeColor = (color: string): void => {
@@ -402,6 +425,7 @@ class ObjectItemContainer extends React.PureComponent<Props> {
                 changeLabel={this.changeLabel}
                 changeAttribute={this.changeAttribute}
                 collapse={this.collapse}
+                activateTracking={this.activateTracking}
                 resetCuboidPerspective={() => this.resetCuboidPerspective()}
             />
         );
