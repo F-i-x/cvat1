@@ -38,7 +38,7 @@ opencv-python==4.4.0.42
 h5py==2.10.0
 django-cors-headers==3.5.0
 furl==2.1.0
-av==8.0.2 --no-binary=av
+av==6.2.0
 tensorflow==2.2.1 # Optional requirement of Datumaro
 # The package is used by pyunpack as a command line tool to support multiple
 # archives. Don't use as a python module because it has GPL license.
