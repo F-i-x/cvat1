@@ -70,19 +70,24 @@
 
 .cvat-objects-sidebar-states-header {
     background: $objects-bar-tabs-color;
-    padding: 5px;
-    height: 80px;
+    padding: $grid-unit-size;
+    // padding: 5px;
+    // height: 80px;
+
+    > div:not(:first-of-type) {
+        margin-top: $grid-unit-size;
+    }
 
     > div:nth-child(1) > div:nth-child(1) {
-        height: 32px;
+        // height: 32px;
     }
 
     > div:nth-child(2) {
-        margin-top: 5px;
+        // margin-top: 5px;
 
         > div {
             text-align: center;
-            margin: 0 2px;
+            // margin: 0 2px;
 
             > i {
                 @extend .cvat-object-sidebar-icon;

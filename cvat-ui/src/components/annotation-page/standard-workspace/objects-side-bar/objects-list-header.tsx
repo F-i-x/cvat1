@@ -2,14 +2,13 @@
 //
 // SPDX-License-Identifier: MIT
 
-import React from 'react';
-import { Row, Col } from 'antd/lib/grid';
+import { Col, Row } from 'antd/lib/grid';
 import Icon from 'antd/lib/icon';
 import Select from 'antd/lib/select';
-import Text from 'antd/lib/typography/Text';
 import Tooltip from 'antd/lib/tooltip';
-
-import AnnotationsFiltersInput from 'components/annotation-page/annotations-filters-input';
+import Text from 'antd/lib/typography/Text';
+import AnnotationFilter from 'components/annotation-page/annotation-filter/annotation-filter';
+import React from 'react';
 import { StatesOrdering } from 'reducers/interfaces';
 
 interface StatesOrderingSelectorComponentProps {
@@ -77,7 +76,8 @@ function ObjectListHeader(props: Props): JSX.Element {
         <div className='cvat-objects-sidebar-states-header'>
             <Row>
                 <Col>
-                    <AnnotationsFiltersInput />
+                    {/* <AnnotationsFiltersInput /> */}
+                    <AnnotationFilter />
                 </Col>
             </Row>
             <Row type='flex' justify='space-between' align='middle'>
