@@ -10,7 +10,7 @@
     flex-wrap: wrap;
     align-items: center;
     min-height: $grid-unit-size * 5;
-    max-height: $grid-unit-size * 30;
+    max-height: $grid-unit-size * 15;
     padding: $grid-unit-size/2;
     background-color: white;
     border-radius: $grid-unit-size/2;
@@ -28,5 +28,11 @@
         .no-filters-icon {
             margin-right: $grid-unit-size/2;
         }
+    }
+
+    .pop-confirm-wrapper {
+        position: absolute;
+        top: 0;
+        left: 45%;
     }
 }
