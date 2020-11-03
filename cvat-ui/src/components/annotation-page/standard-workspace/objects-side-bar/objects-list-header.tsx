@@ -7,7 +7,7 @@ import Icon from 'antd/lib/icon';
 import Select from 'antd/lib/select';
 import Tooltip from 'antd/lib/tooltip';
 import Text from 'antd/lib/typography/Text';
-import AnnotationFilter from 'components/annotation-page/annotation-filter/annotation-filter';
+import AnnotationFilterPane from 'components/annotation-page/annotation-filters/annotation-filters-pane/annotation-filters-pane';
 import React from 'react';
 import { StatesOrdering } from 'reducers/interfaces';
 
@@ -77,7 +77,7 @@ function ObjectListHeader(props: Props): JSX.Element {
             <Row>
                 <Col>
                     {/* <AnnotationsFiltersInput /> */}
-                    <AnnotationFilter />
+                    <AnnotationFilterPane filters={[]} />
                 </Col>
             </Row>
             <Row type='flex' justify='space-between' align='middle'>
