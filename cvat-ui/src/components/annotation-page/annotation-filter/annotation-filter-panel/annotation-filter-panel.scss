@@ -1,0 +1,78 @@
+// Copyright (C) 2020 Intel Corporation
+//
+// SPDX-License-Identifier: MIT
+
+@import '../../../../base.scss';
+
+.annotation-filters-panel {
+    position: absolute;
+    top: 109px;
+    right: 299px;
+    user-select: none;
+
+    .ant-modal-content {
+        background-color: $background-color-2;
+        border: 1px solid $border-color-1;
+        border-radius: 0;
+
+        .ant-modal-help {
+            position: absolute;
+            top: $grid-unit-size * 2;
+            right: $grid-unit-size * 5;
+            font-size: $grid-unit-size * 2;
+            color: #848484;
+            cursor: pointer;
+        }
+
+        .ant-modal-close {
+            top: $grid-unit-size * 2;
+            right: $grid-unit-size * 2;
+
+            .ant-modal-close-x {
+                width: $grid-unit-size * 2;
+                height: $grid-unit-size * 2;
+                line-height: 1;
+            }
+        }
+
+        .ant-modal-body {
+            padding: $grid-unit-size * 2;
+            line-height: 1;
+
+            .filter-option-wrapper {
+                margin: ($grid-unit-size * 2) 0;
+
+                .filter-option {
+                    display: flex;
+                    flex-direction: row;
+                    align-items: center;
+                    &:not(:first-of-type) {
+                        margin-top: $grid-unit-size;
+                    }
+
+                    .filter-option-label {
+                        min-width: 25%;
+
+                        &.lg {
+                            min-width: 68%;
+                        }
+                    }
+
+                    .postfix {
+                        margin-left: $grid-unit-size;
+                    }
+                }
+            }
+
+            .filter-action-wrapper {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                justify-content: flex-end;
+                & > *:not(:last-of-type) {
+                    margin-right: $grid-unit-size * 2;
+                }
+            }
+        }
+    }
+}

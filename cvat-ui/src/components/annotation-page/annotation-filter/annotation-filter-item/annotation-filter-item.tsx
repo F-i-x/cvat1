@@ -5,7 +5,7 @@
 import { Tag } from 'antd';
 import PropTypes from 'prop-types';
 import React, { ReactElement } from 'react';
-import './style.scss';
+import './annotation-filter-item.scss';
 
 interface Props {
     item: number;
