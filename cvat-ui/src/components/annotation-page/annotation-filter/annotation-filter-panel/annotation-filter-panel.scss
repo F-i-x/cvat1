@@ -6,13 +6,13 @@
 
 .annotation-filters-panel {
     position: absolute;
-    top: 109px;
-    right: 299px;
+    top: 110px;
+    right: 300px;
     user-select: none;
 
     .ant-modal-content {
         background-color: $background-color-2;
-        border: 1px solid $border-color-1;
+        outline: 1px solid $border-color-1;
         border-radius: 0;
 
         .ant-modal-help {
