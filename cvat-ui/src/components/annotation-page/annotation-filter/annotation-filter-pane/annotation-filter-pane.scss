@@ -15,11 +15,14 @@
     background-color: white;
     border-radius: $grid-unit-size/2;
     user-select: none;
-    cursor: pointer;
     overflow: auto;
 
     & > * {
         margin: $grid-unit-size/2;
+    }
+
+    .add-more {
+        cursor: pointer;
     }
 
     .no-filters {

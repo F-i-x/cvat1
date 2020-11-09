@@ -12,9 +12,10 @@ import './annotation-filter-panel.scss';
 interface Props {
     isVisible: boolean;
     onClose: Function;
+    onAddNew: Function;
 }
 
-const AnnotationFilterPanel = ({ isVisible, onClose }: Props): ReactElement => {
+const AnnotationFilterPanel = ({ isVisible, onClose, onAddNew }: Props): ReactElement => {
     const [visible, setVisible] = useState(isVisible);
 
     useEffect(() => {
@@ -69,8 +70,8 @@ const AnnotationFilterPanel = ({ isVisible, onClose }: Props): ReactElement => {
             </div>
 
             <div className='filter-action-wrapper'>
-                <Button onClick={() => alert('Cancel')}>Combine</Button>
-                <Button type='primary' onClick={() => alert('Submit')}>
+                <Button onClick={() => alert('Combine')}>Combine</Button>
+                <Button type='primary' onClick={() => onAddNew(50)}>
                     Add new
                 </Button>
             </div>
@@ -81,6 +82,7 @@ const AnnotationFilterPanel = ({ isVisible, onClose }: Props): ReactElement => {
 AnnotationFilterPanel.propTypes = {
     isVisible: PropTypes.bool,
     onClose: PropTypes.func.isRequired,
+    onAddNew: PropTypes.func.isRequired,
 };
 
 export default AnnotationFilterPanel;

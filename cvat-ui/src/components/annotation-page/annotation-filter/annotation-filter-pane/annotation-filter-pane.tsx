@@ -2,8 +2,10 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { Icon, Popconfirm } from 'antd';
-import React, { ReactElement, useRef, useState } from 'react';
+import { Icon, Popconfirm, Tag } from 'antd';
+import React, {
+    ReactElement, useEffect, useRef, useState,
+} from 'react';
 import AnnotationFiltersItem from '../annotation-filter-item/annotation-filter-item';
 import AnnotationFilterPanel from '../annotation-filter-panel/annotation-filter-panel';
 import './annotation-filter-pane.scss';
@@ -15,9 +17,9 @@ const AnnotationFilterPane = (): ReactElement => {
     const filtersEndRef = useRef<null | HTMLDivElement>(null);
     const clearFiltersRef = useRef<null | HTMLAnchorElement>(null);
 
-    // const scrollFiltersToBottom = (): void => {
-    //     setTimeout(() => filtersEndRef?.current?.scrollIntoView({ block: 'center', behavior: 'smooth' }), 100);
-    // };
+    const scrollFiltersToBottom = (): void => {
+        setTimeout(() => filtersEndRef?.current?.scrollIntoView({ block: 'center', behavior: 'smooth' }), 100);
+    };
 
     const resetFilters = (e: React.MouseEvent<HTMLElement, MouseEvent>): void => {
         e.preventDefault();
@@ -29,11 +31,16 @@ const AnnotationFilterPane = (): ReactElement => {
         clearFiltersRef?.current?.click();
     };
 
+    useEffect(() => {
+        scrollFiltersToBottom();
+    }, [filters]);
+
     return (
         <>
             <div
                 className='annotation-filters-pane'
-                onClick={() => setFilterPanelVisible(true)}
+                onClick={() => !filters.length && setFilterPanelVisible(true)}
+                style={{ cursor: filters.length ? 'default' : 'pointer' }}
                 onContextMenu={(e: React.MouseEvent<HTMLElement, MouseEvent>) => confirmClearFilters(e)}
             >
                 {filters?.length ? (
@@ -53,6 +60,9 @@ const AnnotationFilterPane = (): ReactElement => {
                                 <span ref={clearFiltersRef} />
                             </Popconfirm>
                         </div>
+                        <Tag className='add-more' onClick={() => setFilterPanelVisible(true)}>
+                            <Icon type='plus' />
+                        </Tag>
                         <div ref={filtersEndRef} />
                     </>
                 ) : (
@@ -62,7 +72,11 @@ const AnnotationFilterPane = (): ReactElement => {
                     </div>
                 )}
             </div>
-            <AnnotationFilterPanel isVisible={filterPanelVisible} onClose={() => setFilterPanelVisible(false)} />
+            <AnnotationFilterPanel
+                isVisible={filterPanelVisible}
+                onClose={() => setFilterPanelVisible(false)}
+                onAddNew={(num: number) => setFilters([...filters, num])}
+            />
         </>
     );
 };
