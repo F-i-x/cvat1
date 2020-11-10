@@ -4,10 +4,19 @@
 
 @import '../../../../base.scss';
 
+$panel-width: 300px;
+$panel-top-offset: 110px;
+$panel-right-offset: $panel-width;
+$panel-padding: $grid-unit-size * 2;
+$label-sm-width: $grid-unit-size * 8;
+$label-lg-width: $grid-unit-size * 22;
+$option-popup-sm-width: $panel-width - $label-lg-width - ($panel-padding * 2);
+$option-popup-lg-width: $panel-width - $label-sm-width - ($panel-padding * 2);
+
 .annotation-filters-panel {
     position: absolute;
-    top: 110px;
-    right: 300px;
+    top: $panel-top-offset;
+    right: $panel-right-offset;
     user-select: none;
 
     .ant-modal-content {
@@ -36,7 +45,7 @@
         }
 
         .ant-modal-body {
-            padding: $grid-unit-size * 2;
+            padding: $panel-padding;
             line-height: 1;
 
             .filter-option-wrapper {
@@ -46,21 +55,42 @@
                     display: flex;
                     flex-direction: row;
                     align-items: center;
+                    justify-content: space-between;
+
                     &:not(:first-of-type) {
                         margin-top: $grid-unit-size;
                     }
 
                     .filter-option-label {
-                        min-width: 25%;
+                        width: $label-sm-width;
 
-                        &.lg {
-                            min-width: 68%;
+                        &.operator {
+                            width: $label-lg-width;
                         }
                     }
 
-                    .postfix {
-                        margin-left: $grid-unit-size;
+                    .filter-option-value {
+                        display: flex;
+                        flex-direction: row;
+                        align-items: center;
+                        flex: 1;
+
+                        & > * {
+                            flex: 1;
+                        }
                     }
+
+                    // .filter-option-label {
+                    //     min-width: 25%;
+
+                    //     &.lg {
+                    //         min-width: 68%;
+                    //     }
+                    // }
+
+                    // .postfix {
+                    //     margin-left: $grid-unit-size;
+                    // }
                 }
             }
 
@@ -73,6 +103,25 @@
                     margin-right: $grid-unit-size * 2;
                 }
             }
+        }
+    }
+}
+
+.cascader-popup {
+    width: $option-popup-lg-width;
+
+    ul {
+        min-width: unset;
+        max-width: unset;
+        width: $option-popup-lg-width;
+    }
+
+    &.operator {
+        width: $option-popup-sm-width;
+
+        ul {
+            width: $option-popup-sm-width;
+            height: $grid-unit-size * 9;
         }
     }
 }

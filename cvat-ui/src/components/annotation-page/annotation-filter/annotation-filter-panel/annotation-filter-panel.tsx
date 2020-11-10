@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import {
-    Button, Cascader, Icon, Input, Modal,
+    Button, Cascader, Icon, Modal,
 } from 'antd';
 import PropTypes from 'prop-types';
 import React, { ReactElement, useEffect, useState } from 'react';
@@ -38,7 +38,7 @@ const AnnotationFilterPanel = ({ isVisible, onClose, onAddNew }: Props): ReactEl
             <h3>Add new filter</h3>
             <div className='filter-option-wrapper'>
                 <div className='filter-option'>
-                    <span className='filter-option-label lg'>Add as new with operator</span>
+                    <span className='filter-option-label operator'>Add as new with operator</span>
                     <div className='filter-option-value'>
                         <Cascader
                             options={[
@@ -73,7 +73,7 @@ const AnnotationFilterPanel = ({ isVisible, onClose, onAddNew }: Props): ReactEl
                         />
                     </div>
                 </div>
-                <div className='filter-option'>
+                {/* <div className='filter-option'>
                     <span className='filter-option-label'>List for</span>
                     <Input size='small' />
                     <span className='postfix'>label</span>
@@ -94,7 +94,7 @@ const AnnotationFilterPanel = ({ isVisible, onClose, onAddNew }: Props): ReactEl
                 <div className='filter-option'>
                     <span className='filter-option-label'>Attribute</span>
                     <Input size='small' />
-                </div>
+                </div> */}
             </div>
 
             <div className='filter-action-wrapper'>
