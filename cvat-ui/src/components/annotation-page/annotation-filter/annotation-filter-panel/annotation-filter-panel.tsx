@@ -6,7 +6,9 @@ import {
     Button, Cascader, Icon, Modal,
 } from 'antd';
 import PropTypes from 'prop-types';
-import React, { ReactElement, useEffect, useState } from 'react';
+import React, {
+    ReactElement, useEffect, useReducer, useState,
+} from 'react';
 import './annotation-filter-panel.scss';
 
 interface Props {
@@ -15,13 +17,44 @@ interface Props {
     onAddNew: Function;
 }
 
+interface State {
+    operator: string;
+    filterBy: string;
+}
+
+enum ActionType {
+    operator,
+    filterBy,
+    reset,
+}
+
+const initialState: State = {
+    operator: 'or',
+    filterBy: 'label',
+};
+
+const reducer = (state: State, action: { type: ActionType; payload?: any }): State => {
+    switch (action.type) {
+        case ActionType.operator:
+            return { ...state, operator: action.payload };
+        case ActionType.filterBy:
+            return { ...state, filterBy: action.payload };
+        case ActionType.reset:
+            return { ...state, ...initialState };
+        default:
+            return state;
+    }
+};
+
 const AnnotationFilterPanel = ({ isVisible, onClose, onAddNew }: Props): ReactElement => {
     const [visible, setVisible] = useState(isVisible);
+    const [state, dispatch] = useReducer(reducer, initialState);
 
     useEffect(() => {
         setVisible(isVisible);
         return () => {
             setVisible(false);
+            dispatch({ type: ActionType.operator });
         };
     }, [isVisible]);
 
@@ -45,7 +78,7 @@ const AnnotationFilterPanel = ({ isVisible, onClose, onAddNew }: Props): ReactEl
                                 { label: 'and (&)', value: 'and' },
                                 { label: 'or (|)', value: 'or' },
                             ]}
-                            onChange={(value: string[]) => console.log(value[0])}
+                            onChange={(value: string[]) => dispatch({ type: ActionType.operator, payload: value[0] })}
                             popupClassName='cascader-popup operator'
                             size='small'
                         />
@@ -67,7 +100,7 @@ const AnnotationFilterPanel = ({ isVisible, onClose, onAddNew }: Props): ReactEl
                                 { label: 'Attribute', value: 'attribute' },
                                 { label: 'Empty Frame', value: 'empty_frame' },
                             ]}
-                            onChange={(value: string[]) => console.log(value[0])}
+                            onChange={(value: string[]) => dispatch({ type: ActionType.filterBy, payload: value[0] })}
                             popupClassName='cascader-popup'
                             size='small'
                         />
@@ -99,7 +132,7 @@ const AnnotationFilterPanel = ({ isVisible, onClose, onAddNew }: Props): ReactEl
 
             <div className='filter-action-wrapper'>
                 <Button onClick={() => alert('Combine')}>Combine</Button>
-                <Button type='primary' onClick={() => onAddNew(50)}>
+                <Button type='primary' onClick={() => onAddNew(state)}>
                     Add new
                 </Button>
             </div>

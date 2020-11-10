@@ -11,7 +11,7 @@ import AnnotationFilterPanel from '../annotation-filter-panel/annotation-filter-
 import './annotation-filter-pane.scss';
 
 const AnnotationFilterPane = (): ReactElement => {
-    const [filters, setFilters] = useState([] as number[]);
+    const [filters, setFilters] = useState([] as any);
     const [filterPanelVisible, setFilterPanelVisible] = useState(true);
 
     const filtersEndRef = useRef<null | HTMLDivElement>(null);
@@ -75,7 +75,7 @@ const AnnotationFilterPane = (): ReactElement => {
             <AnnotationFilterPanel
                 isVisible={filterPanelVisible}
                 onClose={() => setFilterPanelVisible(false)}
-                onAddNew={(num: number) => setFilters([...filters, num])}
+                onAddNew={(filter: any) => setFilters([...filters, `${filter.operator}[${filter.filterBy}]`])}
             />
         </>
     );

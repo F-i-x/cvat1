@@ -8,7 +8,7 @@ import React, { ReactElement } from 'react';
 import './annotation-filter-item.scss';
 
 interface Props {
-    item: number;
+    item: string;
 }
 
 function AnnotationFiltersItem({ item }: Props): ReactElement {
@@ -28,7 +28,7 @@ function AnnotationFiltersItem({ item }: Props): ReactElement {
 }
 
 AnnotationFiltersItem.propTypes = {
-    item: PropTypes.number.isRequired,
+    item: PropTypes.string.isRequired,
 };
 
 export default AnnotationFiltersItem;
