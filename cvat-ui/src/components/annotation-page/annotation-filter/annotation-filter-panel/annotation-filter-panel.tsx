@@ -39,19 +39,39 @@ const AnnotationFilterPanel = ({ isVisible, onClose, onAddNew }: Props): ReactEl
             <div className='filter-option-wrapper'>
                 <div className='filter-option'>
                     <span className='filter-option-label lg'>Add as new with operator</span>
-                    <Cascader
-                        options={[
-                            { label: 'and (&)', value: 'and' },
-                            { label: 'or (|)', value: 'or' },
-                        ]}
-                        onChange={(value: string[]) => console.log(value[0])}
-                        placeholder=''
-                        size='small'
-                    />
+                    <div className='filter-option-value'>
+                        <Cascader
+                            options={[
+                                { label: 'and (&)', value: 'and' },
+                                { label: 'or (|)', value: 'or' },
+                            ]}
+                            onChange={(value: string[]) => console.log(value[0])}
+                            popupClassName='cascader-popup operator'
+                            size='small'
+                        />
+                    </div>
                 </div>
                 <div className='filter-option'>
                     <span className='filter-option-label'>Filter by</span>
-                    <Input size='small' />
+                    <div className='filter-option-value'>
+                        <Cascader
+                            options={[
+                                { label: 'Label', value: 'label' },
+                                { label: 'Width', value: 'width' },
+                                { label: 'Height', value: 'height' },
+                                { label: 'Server ID', value: 'serverID' },
+                                { label: 'Client ID', value: 'clientID' },
+                                { label: 'Type', value: 'type' },
+                                { label: 'Shape', value: 'shape' },
+                                { label: 'Occluded', value: 'occluded' },
+                                { label: 'Attribute', value: 'attribute' },
+                                { label: 'Empty Frame', value: 'empty_frame' },
+                            ]}
+                            onChange={(value: string[]) => console.log(value[0])}
+                            popupClassName='cascader-popup'
+                            size='small'
+                        />
+                    </div>
                 </div>
                 <div className='filter-option'>
                     <span className='filter-option-label'>List for</span>
