@@ -40,7 +40,6 @@ const AnnotationFilterPane = (): ReactElement => {
         const newFilter = { ...filter };
         newFilter.id = uuidv4();
         setFilters([...filters, newFilter]);
-        setFilterPanelVisible(false);
     };
 
     return (
@@ -81,6 +80,7 @@ const AnnotationFilterPane = (): ReactElement => {
                 )}
             </div>
             <AnnotationFilterPanel
+                isFirst={!filters.length}
                 isVisible={filterPanelVisible}
                 onClose={() => setFilterPanelVisible(false)}
                 onAddNew={(filter: any) => addNew(filter)}

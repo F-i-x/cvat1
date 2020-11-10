@@ -8,8 +8,8 @@ $panel-width: 300px;
 $panel-top-offset: 110px;
 $panel-right-offset: $panel-width;
 $panel-padding: $grid-unit-size * 2;
-$label-sm-width: $grid-unit-size * 8;
-$label-lg-width: $grid-unit-size * 22;
+$label-sm-width: $grid-unit-size * 9;
+$label-lg-width: $grid-unit-size * 23;
 $option-popup-sm-width: $panel-width - $label-lg-width - ($panel-padding * 2);
 $option-popup-lg-width: $panel-width - $label-sm-width - ($panel-padding * 2);
 
@@ -79,18 +79,6 @@ $option-popup-lg-width: $panel-width - $label-sm-width - ($panel-padding * 2);
                             flex: 1;
                         }
                     }
-
-                    // .filter-option-label {
-                    //     min-width: 25%;
-
-                    //     &.lg {
-                    //         min-width: 68%;
-                    //     }
-                    // }
-
-                    // .postfix {
-                    //     margin-left: $grid-unit-size;
-                    // }
                 }
             }
 
@@ -99,6 +87,7 @@ $option-popup-lg-width: $panel-width - $label-sm-width - ($panel-padding * 2);
                 flex-direction: row;
                 align-items: center;
                 justify-content: flex-end;
+
                 & > *:not(:last-of-type) {
                     margin-right: $grid-unit-size * 2;
                 }
