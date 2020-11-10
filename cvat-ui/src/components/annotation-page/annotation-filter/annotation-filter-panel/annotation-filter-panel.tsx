@@ -54,7 +54,7 @@ const AnnotationFilterPanel = ({ isVisible, onClose, onAddNew }: Props): ReactEl
         setVisible(isVisible);
         return () => {
             setVisible(false);
-            dispatch({ type: ActionType.operator });
+            dispatch({ type: ActionType.reset });
         };
     }, [isVisible]);
 
@@ -79,6 +79,7 @@ const AnnotationFilterPanel = ({ isVisible, onClose, onAddNew }: Props): ReactEl
                                 { label: 'or (|)', value: 'or' },
                             ]}
                             onChange={(value: string[]) => dispatch({ type: ActionType.operator, payload: value[0] })}
+                            value={[state.operator]}
                             popupClassName='cascader-popup operator'
                             size='small'
                         />
@@ -101,6 +102,7 @@ const AnnotationFilterPanel = ({ isVisible, onClose, onAddNew }: Props): ReactEl
                                 { label: 'Empty Frame', value: 'empty_frame' },
                             ]}
                             onChange={(value: string[]) => dispatch({ type: ActionType.filterBy, payload: value[0] })}
+                            value={[state.filterBy]}
                             popupClassName='cascader-popup'
                             size='small'
                         />

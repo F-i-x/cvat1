@@ -8,10 +8,10 @@ import React, { ReactElement } from 'react';
 import './annotation-filter-item.scss';
 
 interface Props {
-    item: string;
+    item: any;
 }
 
-function AnnotationFiltersItem({ item }: Props): ReactElement {
+function AnnotationFilterItem({ item }: Props): ReactElement {
     return (
         <Tag
             className='annotation-filters-item'
@@ -22,13 +22,13 @@ function AnnotationFiltersItem({ item }: Props): ReactElement {
             }}
             closable
         >
-            {item}
+            {`${item.operator}[${item.filterBy}]`}
         </Tag>
     );
 }
 
-AnnotationFiltersItem.propTypes = {
-    item: PropTypes.string.isRequired,
+AnnotationFilterItem.propTypes = {
+    item: PropTypes.objectOf(PropTypes.any),
 };
 
-export default AnnotationFiltersItem;
+export default AnnotationFilterItem;

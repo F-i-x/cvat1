@@ -6,7 +6,8 @@ import { Icon, Popconfirm, Tag } from 'antd';
 import React, {
     ReactElement, useEffect, useRef, useState,
 } from 'react';
-import AnnotationFiltersItem from '../annotation-filter-item/annotation-filter-item';
+import { v4 as uuidv4 } from 'uuid';
+import AnnotationFilterItem from '../annotation-filter-item/annotation-filter-item';
 import AnnotationFilterPanel from '../annotation-filter-panel/annotation-filter-panel';
 import './annotation-filter-pane.scss';
 
@@ -35,6 +36,13 @@ const AnnotationFilterPane = (): ReactElement => {
         scrollFiltersToBottom();
     }, [filters]);
 
+    const addNew = (filter: any): void => {
+        const newFilter = { ...filter };
+        newFilter.id = uuidv4();
+        setFilters([...filters, newFilter]);
+        setFilterPanelVisible(false);
+    };
+
     return (
         <>
             <div
@@ -45,8 +53,8 @@ const AnnotationFilterPane = (): ReactElement => {
             >
                 {filters?.length ? (
                     <>
-                        {filters.map((item: number) => (
-                            <AnnotationFiltersItem key={item} item={item} />
+                        {filters.map((item: any) => (
+                            <AnnotationFilterItem key={item.id} item={item} />
                         ))}
                         <div className='pop-confirm-wrapper' onClick={(e) => e.stopPropagation()}>
                             <Popconfirm
@@ -75,7 +83,7 @@ const AnnotationFilterPane = (): ReactElement => {
             <AnnotationFilterPanel
                 isVisible={filterPanelVisible}
                 onClose={() => setFilterPanelVisible(false)}
-                onAddNew={(filter: any) => setFilters([...filters, `${filter.operator}[${filter.filterBy}]`])}
+                onAddNew={(filter: any) => addNew(filter)}
             />
         </>
     );
