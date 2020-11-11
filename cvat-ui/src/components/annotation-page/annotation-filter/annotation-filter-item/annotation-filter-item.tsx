@@ -11,7 +11,15 @@ interface Props {
     item: any;
 }
 
+// TODO: DRY
+enum BooleanFilterByOptions {
+    occluded,
+    empty_frame,
+}
 function AnnotationFilterItem({ item }: Props): ReactElement {
+    // TODO: DRY
+    const isBooleanFilterBy = (): boolean => Object.values(BooleanFilterByOptions).includes(item.filterBy);
+
     return (
         <>
             {item.concatenator && ` ${item.concatenator} `}
@@ -24,7 +32,8 @@ function AnnotationFilterItem({ item }: Props): ReactElement {
                 }}
                 closable
             >
-                {`${item.filterBy}${item.operator}${item.operatorValue}`}
+                {!isBooleanFilterBy() && `${item.filterBy}${item.operator}${item.value}`}
+                {isBooleanFilterBy() && `${item.filterBy} is ${item.value}`}
             </Tag>
         </>
     );

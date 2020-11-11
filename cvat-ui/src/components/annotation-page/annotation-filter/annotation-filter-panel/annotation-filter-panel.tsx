@@ -3,8 +3,9 @@
 // SPDX-License-Identifier: MIT
 
 import {
-    Button, Cascader, Icon, Modal,
+    Button, Cascader, Icon, Modal, Radio,
 } from 'antd';
+import { RadioChangeEvent } from 'antd/lib/radio';
 import PropTypes from 'prop-types';
 import React, { ReactElement, useEffect, useReducer } from 'react';
 import './annotation-filter-panel.scss';
@@ -20,14 +21,14 @@ interface State {
     concatenator: string;
     filterBy: string;
     operator: string;
-    operatorValue: string;
+    value: string;
 }
 
 enum ActionType {
     concatenator,
     filterBy,
     operator,
-    operatorValue,
+    value,
     reset,
 }
 
@@ -46,7 +47,7 @@ enum FilterByValues {
     shape = 'shape',
     occluded = 'occluded',
     attribute = 'attribute',
-    empty_frame = 'empty_frame',
+    emptyFrame = 'empty_frame',
 }
 
 enum FilterByTypeValues {
@@ -79,6 +80,11 @@ enum NumericFilterByOptions {
     clientID,
 }
 
+enum BooleanFilterByOptions {
+    occluded,
+    empty_frame,
+}
+
 const concatenatorOptions: { [key: string]: string }[] = [
     { label: 'and (&)', value: ConcatenatorOptionsValues.and },
     { label: 'or (|)', value: ConcatenatorOptionsValues.or },
@@ -94,7 +100,7 @@ const filterByOptions: { [key: string]: string | FilterByValues }[] = [
     { label: 'Shape', value: FilterByValues.shape },
     { label: 'Occluded', value: FilterByValues.occluded },
     { label: 'Attribute', value: FilterByValues.attribute },
-    { label: 'Empty Frame', value: FilterByValues.empty_frame },
+    { label: 'Empty Frame', value: FilterByValues.emptyFrame },
 ];
 
 const filterByBooleanOptions: { [key: string]: string | boolean }[] = [
@@ -133,8 +139,8 @@ const reducer = (state: State, action: { type: ActionType; payload?: any }): Sta
             return { ...state, filterBy: action.payload };
         case ActionType.operator:
             return { ...state, operator: action.payload };
-        case ActionType.operatorValue:
-            return { ...state, operatorValue: action.payload };
+        case ActionType.value:
+            return { ...state, value: action.payload };
         case ActionType.reset:
             return {} as State;
         default:
@@ -158,13 +164,16 @@ const AnnotationFilterPanel = ({
         return operatorOptions;
     };
 
-    const getOperatorValueOptions = (): { [key: string]: any }[] => {
+    const isBooleanFilterBy = (): boolean => Object.values(BooleanFilterByOptions).includes(state.filterBy);
+
+    const getvalueOptions = (): { [key: string]: any }[] => {
         switch (state.filterBy) {
             case FilterByValues.type:
                 return filterByTypeOptions;
             case FilterByValues.shape:
                 return filterByShapeOptions;
             case FilterByValues.occluded:
+            case FilterByValues.emptyFrame:
                 return filterByBooleanOptions;
             default:
                 return [];
@@ -218,7 +227,7 @@ const AnnotationFilterPanel = ({
                         </div>
                     </div>
                 </div>
-                {state.filterBy && (
+                {state.filterBy && !isBooleanFilterBy() && (
                     <div className='filter-option'>
                         <span className='filter-option-label'>
                             {filterByOptions.find((option) => option.value === state.filterBy)?.label}
@@ -239,15 +248,37 @@ const AnnotationFilterPanel = ({
                             </div>
                             <div className='filter-option-value'>
                                 <Cascader
-                                    options={getOperatorValueOptions()}
+                                    options={getvalueOptions()}
                                     // eslint-disable-next-line max-len
-                                    onChange={(value: string[]) => dispatch({ type: ActionType.operatorValue, payload: value[0] })}
-                                    value={[state.operatorValue]}
-                                    popupClassName={`cascader-popup options-${getOperatorValueOptions().length} value`}
+                                    onChange={(value: string[]) => dispatch({ type: ActionType.value, payload: value[0] })}
+                                    value={[state.value]}
+                                    popupClassName={`cascader-popup options-${getvalueOptions().length} value`}
                                     allowClear={false}
                                     placeholder=''
                                     size='small'
                                 />
+                            </div>
+                        </div>
+                    </div>
+                )}
+                {state.filterBy && isBooleanFilterBy() && (
+                    <div className='filter-option'>
+                        <span className='filter-option-label'>
+                            {filterByOptions.find((option) => option.value === state.filterBy)?.label}
+                        </span>
+                        <div className='filter-option-value-wrapper'>
+                            <div className='filter-option-value boolean'>
+                                <Radio.Group
+                                    // eslint-disable-next-line max-len
+                                    onChange={(e: RadioChangeEvent) => dispatch({ type: ActionType.value, payload: e.target.value })}
+                                    value={state.value}
+                                >
+                                    {filterByBooleanOptions.map((option) => (
+                                        <Radio key={option.value.toString()} value={option.value}>
+                                            {option.label}
+                                        </Radio>
+                                    ))}
+                                </Radio.Group>
                             </div>
                         </div>
                     </div>

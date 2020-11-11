@@ -98,6 +98,20 @@ $options-quantity-limit: 10;
                                 flex: none;
                                 width: $option-operator-width;
                             }
+
+                            .ant-radio-group {
+                                display: flex;
+                                flex-direction: row;
+                                justify-content: flex-end;
+
+                                .ant-radio-wrapper:last-of-type {
+                                    margin-right: 0;
+
+                                    span.ant-radio + * {
+                                        padding-right: 0;
+                                    }
+                                }
+                            }
                         }
                     }
                 }
