@@ -5,13 +5,19 @@
 @import '../../../../base.scss';
 
 $panel-width: 300px;
+$panel-padding: $grid-unit-size * 2;
+
 $panel-top-offset: 110px;
 $panel-right-offset: $panel-width;
-$panel-padding: $grid-unit-size * 2;
-$label-sm-width: $grid-unit-size * 9;
-$label-lg-width: $grid-unit-size * 23;
-$option-popup-sm-width: $panel-width - $label-lg-width - ($panel-padding * 2);
-$option-popup-lg-width: $panel-width - $label-sm-width - ($panel-padding * 2);
+
+$label-width: $grid-unit-size * 9;
+$label-concatenator-width: $grid-unit-size * 23;
+
+$option-popup-width: $panel-width - $label-width - ($panel-padding * 2);
+$option-popup-concatenator-width: $panel-width - $label-concatenator-width - ($panel-padding * 2);
+
+$option-operator-width: $grid-unit-size * 7;
+$option-operator-value-width: $panel-width - $label-concatenator-width - ($panel-padding * 2);
 
 .annotation-filters-panel {
     position: absolute;
@@ -62,21 +68,34 @@ $option-popup-lg-width: $panel-width - $label-sm-width - ($panel-padding * 2);
                     }
 
                     .filter-option-label {
-                        width: $label-sm-width;
+                        width: $label-width;
 
-                        &.operator {
-                            width: $label-lg-width;
+                        &.concatenator {
+                            width: $label-concatenator-width;
                         }
                     }
 
-                    .filter-option-value {
+                    .filter-option-value-wrapper {
                         display: flex;
                         flex-direction: row;
                         align-items: center;
                         flex: 1;
 
-                        & > * {
+                        .filter-option-value {
                             flex: 1;
+
+                            & > * {
+                                width: 100%;
+                            }
+
+                            &:not(:last-of-type) {
+                                margin-right: $grid-unit-size;
+                            }
+
+                            &.operator {
+                                flex: none;
+                                width: $option-operator-width;
+                            }
                         }
                     }
                 }
@@ -97,20 +116,58 @@ $option-popup-lg-width: $panel-width - $label-sm-width - ($panel-padding * 2);
 }
 
 .cascader-popup {
-    width: $option-popup-lg-width;
+    width: $option-popup-width;
 
     ul {
         min-width: unset;
         max-width: unset;
-        width: $option-popup-lg-width;
+        width: $option-popup-width;
+    }
+
+    &.concatenator {
+        width: $option-popup-concatenator-width;
+
+        ul {
+            width: $option-popup-concatenator-width;
+            height: $grid-unit-size * 9;
+        }
+    }
+
+    &.filter-by {
+        ul {
+            height: $grid-unit-size * 40;
+        }
     }
 
     &.operator {
-        width: $option-popup-sm-width;
+        width: $option-operator-width;
 
         ul {
-            width: $option-popup-sm-width;
-            height: $grid-unit-size * 9;
+            width: $option-operator-width;
+        }
+
+        &.full {
+            ul {
+                height: $grid-unit-size * 25;
+            }
+        }
+
+        &.short {
+            ul {
+                height: $grid-unit-size * 9;
+            }
+        }
+    }
+
+    &.operator-value {
+        $operator-value-width: (
+            $panel-width - $label-width - ($panel-padding * 2) - $option-operator-width - $grid-unit-size
+        );
+
+        width: $operator-value-width;
+
+        ul {
+            width: $operator-value-width;
         }
     }
 }

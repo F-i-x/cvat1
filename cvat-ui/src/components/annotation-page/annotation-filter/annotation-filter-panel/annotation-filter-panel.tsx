@@ -6,9 +6,7 @@ import {
     Button, Cascader, Icon, Modal,
 } from 'antd';
 import PropTypes from 'prop-types';
-import React, {
-    ReactElement, useEffect, useReducer, useState,
-} from 'react';
+import React, { ReactElement, useEffect, useReducer } from 'react';
 import './annotation-filter-panel.scss';
 
 interface Props {
@@ -19,47 +17,121 @@ interface Props {
 }
 
 interface State {
-    operator: string;
+    concatenator: string;
     filterBy: string;
+    operator: string;
+    operatorValue: string;
 }
 
 enum ActionType {
-    operator,
+    concatenator,
     filterBy,
+    operator,
+    operatorValue,
     reset,
 }
 
-const operatorOptions: { [key: string]: string }[] = [
+enum FilterByValues {
+    label = 'label',
+    width = 'width',
+    height = 'height',
+    serverID = 'serverID',
+    clientID = 'clientID',
+    type = 'type',
+    shape = 'shape',
+    occluded = 'occluded',
+    attribute = 'attribute',
+    empty_frame = 'empty_frame',
+}
+
+enum FilterByTypeValues {
+    shape = 'shape',
+    track = 'track',
+}
+
+enum FilterByShapeValues {
+    rectangle = 'rectangle',
+    points = 'points',
+    polyline = 'points',
+    polygon = 'polygon',
+    cuboids = 'cuboids',
+    tag = 'tag',
+}
+
+enum OperatorOptionsValues {
+    eq = '==',
+    neq = '!=',
+    gt = '>',
+    gte = '>=',
+    lt = '<',
+    lte = '<=',
+}
+
+enum NumericFilterByOptions {
+    width,
+    height,
+    serverID,
+    clientID,
+}
+
+const concatenatorOptions: { [key: string]: string }[] = [
     { label: 'and (&)', value: 'and' },
     { label: 'or (|)', value: 'or' },
 ];
 
-const filterByOptions: { [key: string]: string }[] = [
-    { label: 'Label', value: 'label' },
-    { label: 'Width', value: 'width' },
-    { label: 'Height', value: 'height' },
-    { label: 'Server ID', value: 'serverID' },
-    { label: 'Client ID', value: 'clientID' },
-    { label: 'Type', value: 'type' },
-    { label: 'Shape', value: 'shape' },
-    { label: 'Occluded', value: 'occluded' },
-    { label: 'Attribute', value: 'attribute' },
-    { label: 'Empty Frame', value: 'empty_frame' },
+const filterByOptions: { [key: string]: string | FilterByValues }[] = [
+    { label: 'Label', value: FilterByValues.label },
+    { label: 'Width', value: FilterByValues.width },
+    { label: 'Height', value: FilterByValues.height },
+    { label: 'Server ID', value: FilterByValues.serverID },
+    { label: 'Client ID', value: FilterByValues.clientID },
+    { label: 'Type', value: FilterByValues.type },
+    { label: 'Shape', value: FilterByValues.shape },
+    { label: 'Occluded', value: FilterByValues.occluded },
+    { label: 'Attribute', value: FilterByValues.attribute },
+    { label: 'Empty Frame', value: FilterByValues.empty_frame },
 ];
 
-const initialState: State = {
-    operator: '',
-    filterBy: '',
-};
+const filterByBooleanOptions: { [key: string]: string | boolean }[] = [
+    { label: 'True', value: true },
+    { label: 'False', value: false },
+];
+
+const filterByTypeOptions: { [key: string]: string }[] = [
+    { label: 'Shape', value: FilterByTypeValues.shape },
+    { label: 'Track', value: FilterByTypeValues.track },
+];
+
+const filterByShapeOptions: { [key: string]: string }[] = [
+    { label: 'Rectangle', value: FilterByShapeValues.rectangle },
+    { label: 'Points', value: FilterByShapeValues.points },
+    { label: 'Polyline', value: FilterByShapeValues.polyline },
+    { label: 'Polygon', value: FilterByShapeValues.polygon },
+    { label: 'Cuboids', value: FilterByShapeValues.cuboids },
+    { label: 'Tag', value: FilterByShapeValues.tag },
+];
+
+const operatorOptions: { [key: string]: string | boolean }[] = [
+    { label: OperatorOptionsValues.eq, value: OperatorOptionsValues.eq, any: true },
+    { label: OperatorOptionsValues.neq, value: OperatorOptionsValues.neq, any: true },
+    { label: OperatorOptionsValues.gt, value: OperatorOptionsValues.gt, any: false },
+    { label: OperatorOptionsValues.gte, value: OperatorOptionsValues.gte, any: false },
+    { label: OperatorOptionsValues.lt, value: OperatorOptionsValues.lt, any: false },
+    { label: OperatorOptionsValues.lte, value: OperatorOptionsValues.lte, any: false },
+];
 
 const reducer = (state: State, action: { type: ActionType; payload?: any }): State => {
     switch (action.type) {
-        case ActionType.operator:
-            return { ...state, operator: action.payload };
+        case ActionType.concatenator:
+            return { ...state, concatenator: action.payload };
         case ActionType.filterBy:
             return { ...state, filterBy: action.payload };
+        case ActionType.operator:
+            return { ...state, operator: action.payload };
+        case ActionType.operatorValue:
+            return { ...state, operatorValue: action.payload };
         case ActionType.reset:
-            return { ...state, ...initialState };
+            return {} as State;
         default:
             return state;
     }
@@ -68,19 +140,37 @@ const reducer = (state: State, action: { type: ActionType; payload?: any }): Sta
 const AnnotationFilterPanel = ({
     isFirst, isVisible, onClose, onAddNew,
 }: Props): ReactElement => {
-    const [visible, setVisible] = useState(isVisible);
-    const [state, dispatch] = useReducer(reducer, initialState);
+    const [state, dispatch] = useReducer(reducer, {} as State);
 
     useEffect(() => {
         setTimeout(() => dispatch({ type: ActionType.reset }), 100);
-        setVisible(isVisible);
     }, [isVisible]);
+
+    const getOperatorOptions = (): { [key: string]: any }[] => {
+        if (!Object.values(NumericFilterByOptions).includes(state.filterBy)) {
+            return operatorOptions.filter((option) => option.any);
+        }
+        return operatorOptions;
+    };
+
+    const getOperatorValueOptions = (): { [key: string]: any }[] => {
+        switch (state.filterBy) {
+            case FilterByValues.type:
+                return filterByTypeOptions;
+            case FilterByValues.shape:
+                return filterByShapeOptions;
+            case FilterByValues.occluded:
+                return filterByBooleanOptions;
+            default:
+                return [];
+        }
+    };
 
     return (
         <Modal
             className='annotation-filters-panel'
             onCancel={() => onClose()}
-            visible={visible}
+            visible={isVisible}
             footer={false}
             mask={false}
             width={300}
@@ -89,30 +179,38 @@ const AnnotationFilterPanel = ({
             <h3>Add new filter</h3>
             <div className='filter-option-wrapper'>
                 <div className='filter-option'>
-                    <span className='filter-option-label operator'>Add as new with operator</span>
-                    <div className='filter-option-value'>
-                        <Cascader
-                            options={operatorOptions}
-                            onChange={(value: string[]) => dispatch({ type: ActionType.operator, payload: value[0] })}
-                            value={[state.operator]}
-                            disabled={isFirst}
-                            popupClassName='cascader-popup operator'
-                            placeholder=''
-                            size='small'
-                        />
+                    <span className='filter-option-label concatenator'>Add as new with operator</span>
+                    <div className='filter-option-value-wrapper'>
+                        <div className='filter-option-value'>
+                            <Cascader
+                                options={concatenatorOptions}
+                                // eslint-disable-next-line max-len
+                                onChange={(value: string[]) => dispatch({ type: ActionType.concatenator, payload: value[0] })}
+                                value={[state.concatenator]}
+                                disabled={isFirst}
+                                popupClassName='cascader-popup concatenator'
+                                allowClear={false}
+                                placeholder=''
+                                size='small'
+                            />
+                        </div>
                     </div>
                 </div>
                 <div className='filter-option'>
                     <span className='filter-option-label'>Filter by</span>
-                    <div className='filter-option-value'>
-                        <Cascader
-                            options={filterByOptions}
-                            onChange={(value: string[]) => dispatch({ type: ActionType.filterBy, payload: value[0] })}
-                            value={[state.filterBy]}
-                            popupClassName='cascader-popup'
-                            placeholder=''
-                            size='small'
-                        />
+                    <div className='filter-option-value-wrapper'>
+                        <div className='filter-option-value'>
+                            <Cascader
+                                options={filterByOptions}
+                                // eslint-disable-next-line max-len
+                                onChange={(value: string[]) => dispatch({ type: ActionType.filterBy, payload: value[0] })}
+                                value={[state.filterBy]}
+                                popupClassName='cascader-popup filter-by'
+                                allowClear={false}
+                                placeholder=''
+                                size='small'
+                            />
+                        </div>
                     </div>
                 </div>
                 {state.filterBy && (
@@ -120,53 +218,37 @@ const AnnotationFilterPanel = ({
                         <span className='filter-option-label'>
                             {filterByOptions.find((option) => option.value === state.filterBy)?.label}
                         </span>
-                        <div className='filter-option-value'>
-                            <Cascader
-                                options={[
-                                    { label: 'Label', value: 'label' },
-                                    { label: 'Width', value: 'width' },
-                                    { label: 'Height', value: 'height' },
-                                    { label: 'Server ID', value: 'serverID' },
-                                    { label: 'Client ID', value: 'clientID' },
-                                    { label: 'Type', value: 'type' },
-                                    { label: 'Shape', value: 'shape' },
-                                    { label: 'Occluded', value: 'occluded' },
-                                    { label: 'Attribute', value: 'attribute' },
-                                    { label: 'Empty Frame', value: 'empty_frame' },
-                                ]}
-                                // eslint-disable-next-line max-len
-                                onChange={(value: string[]) => dispatch({ type: ActionType.filterBy, payload: value[0] })}
-                                value={[state.filterBy]}
-                                popupClassName='cascader-popup'
-                                placeholder=''
-                                size='small'
-                            />
+                        <div className='filter-option-value-wrapper'>
+                            <div className='filter-option-value operator'>
+                                <Cascader
+                                    // eslint-disable-next-line max-len
+                                    options={getOperatorOptions()}
+                                    // eslint-disable-next-line max-len
+                                    onChange={(value: string[]) => dispatch({ type: ActionType.operator, payload: value[0] })}
+                                    value={[state.operator]}
+                                    popupClassName={`cascader-popup operator ${
+                                        getOperatorOptions().length > 2 ? 'full' : 'short'
+                                    }`}
+                                    allowClear={false}
+                                    placeholder=''
+                                    size='small'
+                                />
+                            </div>
+                            <div className='filter-option-value'>
+                                <Cascader
+                                    options={getOperatorValueOptions()}
+                                    // eslint-disable-next-line max-len
+                                    onChange={(value: string[]) => dispatch({ type: ActionType.operatorValue, payload: value[0] })}
+                                    value={[state.operatorValue]}
+                                    popupClassName='cascader-popup operator-value'
+                                    allowClear={false}
+                                    placeholder=''
+                                    size='small'
+                                />
+                            </div>
                         </div>
                     </div>
                 )}
-
-                {/* <div className='filter-option'>
-                    <span className='filter-option-label'>List for</span>
-                    <Input size='small' />
-                    <span className='postfix'>label</span>
-                </div>
-                <div className='filter-option'>
-                    <span className='filter-option-label'>Attribute</span>
-                    <Input size='small' />
-                </div>
-                <div className='filter-option'>
-                    <span className='filter-option-label'>Value</span>
-                    <Input size='small' />
-                </div>
-                <div className='filter-option'>
-                    <span className='filter-option-label'>List for</span>
-                    <Input size='small' />
-                    <span className='postfix'>label</span>
-                </div>
-                <div className='filter-option'>
-                    <span className='filter-option-label'>Attribute</span>
-                    <Input size='small' />
-                </div> */}
             </div>
 
             <div className='filter-action-wrapper'>

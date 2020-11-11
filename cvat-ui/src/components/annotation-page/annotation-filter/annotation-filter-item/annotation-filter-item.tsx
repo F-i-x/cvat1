@@ -22,7 +22,7 @@ function AnnotationFilterItem({ item }: Props): ReactElement {
             }}
             closable
         >
-            {`${item.operator}[${item.filterBy}]`}
+            {`${item.filterBy}${item.operator}${item.operatorValue}`}
         </Tag>
     );
 }
