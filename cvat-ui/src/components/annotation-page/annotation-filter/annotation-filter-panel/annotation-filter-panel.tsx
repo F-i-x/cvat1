@@ -164,7 +164,7 @@ const AnnotationFilterPanel = ({
     useEffect(() => {
         if (isFirst) return;
         dispatch({ type: ActionType.concatenator, payload: ConcatenatorOptionsValues.and });
-    }, [isFirst]);
+    }, [onAddNew]);
 
     const getOperatorOptions = (): { [key: string]: any }[] => {
         if (!Object.values(NumericFilterByOptions).includes(state.filterBy)) {
