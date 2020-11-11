@@ -17,7 +17,9 @@ $option-popup-width: $panel-width - $label-width - ($panel-padding * 2);
 $option-popup-concatenator-width: $panel-width - $label-concatenator-width - ($panel-padding * 2);
 
 $option-operator-width: $grid-unit-size * 7;
-$option-operator-value-width: $panel-width - $label-concatenator-width - ($panel-padding * 2);
+$option-value-width: $panel-width - $label-concatenator-width - ($panel-padding * 2);
+
+$options-quantity-limit: 10;
 
 .annotation-filters-panel {
     position: absolute;
@@ -116,12 +118,26 @@ $option-operator-value-width: $panel-width - $label-concatenator-width - ($panel
 }
 
 .cascader-popup {
+    $cascader-popup-item-height: $grid-unit-size * 4;
+
     width: $option-popup-width;
+
+    @for $i from 1 through $options-quantity-limit {
+        &.options-#{$i} {
+            ul {
+                height: $grid-unit-size + ($cascader-popup-item-height * $i);
+            }
+        }
+    }
 
     ul {
         min-width: unset;
         max-width: unset;
         width: $option-popup-width;
+
+        li {
+            height: $cascader-popup-item-height;
+        }
     }
 
     &.concatenator {
@@ -129,13 +145,6 @@ $option-operator-value-width: $panel-width - $label-concatenator-width - ($panel
 
         ul {
             width: $option-popup-concatenator-width;
-            height: $grid-unit-size * 9;
-        }
-    }
-
-    &.filter-by {
-        ul {
-            height: $grid-unit-size * 40;
         }
     }
 
@@ -145,29 +154,15 @@ $option-operator-value-width: $panel-width - $label-concatenator-width - ($panel
         ul {
             width: $option-operator-width;
         }
-
-        &.full {
-            ul {
-                height: $grid-unit-size * 25;
-            }
-        }
-
-        &.short {
-            ul {
-                height: $grid-unit-size * 9;
-            }
-        }
     }
 
-    &.operator-value {
-        $operator-value-width: (
-            $panel-width - $label-width - ($panel-padding * 2) - $option-operator-width - $grid-unit-size
-        );
+    &.value {
+        $value-width: ($panel-width - $label-width - ($panel-padding * 2) - $option-operator-width - $grid-unit-size);
 
-        width: $operator-value-width;
+        width: $value-width;
 
         ul {
-            width: $operator-value-width;
+            width: $value-width;
         }
     }
 }

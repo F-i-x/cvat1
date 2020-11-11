@@ -52,7 +52,7 @@ enum FilterByTypeValues {
 enum FilterByShapeValues {
     rectangle = 'rectangle',
     points = 'points',
-    polyline = 'points',
+    polyline = 'polyline',
     polygon = 'polygon',
     cuboids = 'cuboids',
     tag = 'tag',
@@ -187,8 +187,8 @@ const AnnotationFilterPanel = ({
                                 // eslint-disable-next-line max-len
                                 onChange={(value: string[]) => dispatch({ type: ActionType.concatenator, payload: value[0] })}
                                 value={[state.concatenator]}
+                                popupClassName={`cascader-popup options-${concatenatorOptions.length} concatenator`}
                                 disabled={isFirst}
-                                popupClassName='cascader-popup concatenator'
                                 allowClear={false}
                                 placeholder=''
                                 size='small'
@@ -205,7 +205,7 @@ const AnnotationFilterPanel = ({
                                 // eslint-disable-next-line max-len
                                 onChange={(value: string[]) => dispatch({ type: ActionType.filterBy, payload: value[0] })}
                                 value={[state.filterBy]}
-                                popupClassName='cascader-popup filter-by'
+                                popupClassName={`cascader-popup options-${filterByOptions.length}`}
                                 allowClear={false}
                                 placeholder=''
                                 size='small'
@@ -226,9 +226,7 @@ const AnnotationFilterPanel = ({
                                     // eslint-disable-next-line max-len
                                     onChange={(value: string[]) => dispatch({ type: ActionType.operator, payload: value[0] })}
                                     value={[state.operator]}
-                                    popupClassName={`cascader-popup operator ${
-                                        getOperatorOptions().length > 2 ? 'full' : 'short'
-                                    }`}
+                                    popupClassName={`cascader-popup options-${getOperatorOptions().length} operator`}
                                     allowClear={false}
                                     placeholder=''
                                     size='small'
@@ -240,7 +238,7 @@ const AnnotationFilterPanel = ({
                                     // eslint-disable-next-line max-len
                                     onChange={(value: string[]) => dispatch({ type: ActionType.operatorValue, payload: value[0] })}
                                     value={[state.operatorValue]}
-                                    popupClassName='cascader-popup operator-value'
+                                    popupClassName={`cascader-popup options-${getOperatorValueOptions().length} value`}
                                     allowClear={false}
                                     placeholder=''
                                     size='small'
