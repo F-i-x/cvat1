@@ -13,17 +13,20 @@ interface Props {
 
 function AnnotationFilterItem({ item }: Props): ReactElement {
     return (
-        <Tag
-            className='annotation-filters-item'
-            onClick={(e: React.MouseEvent<HTMLSpanElement, MouseEvent>) => e.stopPropagation()}
-            onClose={(e: React.MouseEvent<HTMLSpanElement, MouseEvent>) => {
-                e.preventDefault();
-                alert('Close');
-            }}
-            closable
-        >
-            {`${item.filterBy}${item.operator}${item.operatorValue}`}
-        </Tag>
+        <>
+            {item.concatenator && ` ${item.concatenator} `}
+            <Tag
+                className='annotation-filters-item'
+                onClick={(e: React.MouseEvent<HTMLSpanElement, MouseEvent>) => e.stopPropagation()}
+                onClose={(e: React.MouseEvent<HTMLSpanElement, MouseEvent>) => {
+                    e.preventDefault();
+                    alert('Close');
+                }}
+                closable
+            >
+                {`${item.filterBy}${item.operator}${item.operatorValue}`}
+            </Tag>
+        </>
     );
 }
 

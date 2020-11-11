@@ -31,6 +31,11 @@ enum ActionType {
     reset,
 }
 
+enum ConcatenatorOptionsValues {
+    or = '|',
+    and = '&',
+}
+
 enum FilterByValues {
     label = 'label',
     width = 'width',
@@ -75,8 +80,8 @@ enum NumericFilterByOptions {
 }
 
 const concatenatorOptions: { [key: string]: string }[] = [
-    { label: 'and (&)', value: 'and' },
-    { label: 'or (|)', value: 'or' },
+    { label: 'and (&)', value: ConcatenatorOptionsValues.and },
+    { label: 'or (|)', value: ConcatenatorOptionsValues.or },
 ];
 
 const filterByOptions: { [key: string]: string | FilterByValues }[] = [
