@@ -154,8 +154,17 @@ const AnnotationFilterPanel = ({
     const [state, dispatch] = useReducer(reducer, {} as State);
 
     useEffect(() => {
-        setTimeout(() => dispatch({ type: ActionType.reset }), 100);
+        setTimeout(() => {
+            dispatch({ type: ActionType.reset });
+            if (isFirst) return;
+            dispatch({ type: ActionType.concatenator, payload: ConcatenatorOptionsValues.and });
+        }, 100);
     }, [isVisible]);
+
+    useEffect(() => {
+        if (isFirst) return;
+        dispatch({ type: ActionType.concatenator, payload: ConcatenatorOptionsValues.and });
+    }, [isFirst]);
 
     const getOperatorOptions = (): { [key: string]: any }[] => {
         if (!Object.values(NumericFilterByOptions).includes(state.filterBy)) {
