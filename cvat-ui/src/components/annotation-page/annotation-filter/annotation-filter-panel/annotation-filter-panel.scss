@@ -90,10 +90,6 @@ $options-quantity-limit: 10;
                                 width: 100%;
                             }
 
-                            &:not(:last-of-type) {
-                                margin-right: $grid-unit-size;
-                            }
-
                             &.operator {
                                 flex: none;
                                 width: $option-operator-width;
@@ -112,6 +108,16 @@ $options-quantity-limit: 10;
                                     }
                                 }
                             }
+
+                            .numeric-autocomplete {
+                                .ant-input {
+                                    text-align: right;
+                                }
+                            }
+                        }
+
+                        & > :not(:last-child) {
+                            margin-right: $grid-unit-size;
                         }
                     }
                 }

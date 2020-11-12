@@ -3,9 +3,10 @@
 // SPDX-License-Identifier: MIT
 
 import {
-    Button, Cascader, Icon, Modal, Radio,
+    AutoComplete, Button, Cascader, Icon, Modal, Radio,
 } from 'antd';
 import { RadioChangeEvent } from 'antd/lib/radio';
+import { SelectValue } from 'antd/lib/select';
 import PropTypes from 'prop-types';
 import React, { ReactElement, useEffect, useReducer } from 'react';
 import './annotation-filter-panel.scss';
@@ -22,6 +23,12 @@ interface State {
     filterBy: string;
     operator: string;
     value: string;
+}
+interface MemorizedFilters {
+    width?: string[];
+    height?: string[];
+    serverID?: string[];
+    clientID?: string[];
 }
 
 enum ActionType {
@@ -78,6 +85,11 @@ enum NumericFilterByOptions {
     height,
     serverID,
     clientID,
+}
+
+enum PixelFilterByOptions {
+    width,
+    height,
 }
 
 enum BooleanFilterByOptions {
@@ -153,6 +165,21 @@ const AnnotationFilterPanel = ({
 }: Props): ReactElement => {
     const [state, dispatch] = useReducer(reducer, {} as State);
 
+    const isBooleanFilterBy = (): boolean => Object.values(BooleanFilterByOptions).includes(state.filterBy);
+    const isNumericFilterBy = (): boolean => Object.values(NumericFilterByOptions).includes(state.filterBy);
+    const isPixelFilterBy = (): boolean => Object.values(PixelFilterByOptions).includes(state.filterBy);
+
+    const getMemorizedFilters = (): MemorizedFilters => JSON.parse(localStorage.getItem('filters') ?? '{}');
+    const setMemorizedFilters = (): void => {
+        const filters = { ...getMemorizedFilters() };
+        filters[state.filterBy] = [state.value, ...(filters[state.filterBy] ?? [])];
+        filters[state.filterBy] = filters[state.filterBy]
+            .filter((value: string) => value)
+            .filter((value: string, index: number, self: string[]) => self.indexOf(value) === index)
+            .slice(0, 10);
+        localStorage.setItem('filters', JSON.stringify(filters));
+    };
+
     useEffect(() => {
         setTimeout(() => {
             dispatch({ type: ActionType.reset });
@@ -162,8 +189,13 @@ const AnnotationFilterPanel = ({
     }, [isVisible]);
 
     useEffect(() => {
-        if (isFirst) return;
-        dispatch({ type: ActionType.concatenator, payload: ConcatenatorOptionsValues.and });
+        dispatch({ type: ActionType.value, payload: '' });
+    }, [state.filterBy]);
+
+    useEffect(() => {
+        if (isNumericFilterBy()) setMemorizedFilters();
+        dispatch({ type: ActionType.reset });
+        if (!isFirst) dispatch({ type: ActionType.concatenator, payload: ConcatenatorOptionsValues.and });
     }, [onAddNew]);
 
     const getOperatorOptions = (): { [key: string]: any }[] => {
@@ -173,9 +205,7 @@ const AnnotationFilterPanel = ({
         return operatorOptions;
     };
 
-    const isBooleanFilterBy = (): boolean => Object.values(BooleanFilterByOptions).includes(state.filterBy);
-
-    const getvalueOptions = (): { [key: string]: any }[] => {
+    const getValueOptions = (): { [key: string]: any }[] => {
         switch (state.filterBy) {
             case FilterByValues.type:
                 return filterByTypeOptions;
@@ -255,18 +285,35 @@ const AnnotationFilterPanel = ({
                                     size='small'
                                 />
                             </div>
-                            <div className='filter-option-value'>
-                                <Cascader
-                                    options={getvalueOptions()}
-                                    // eslint-disable-next-line max-len
-                                    onChange={(value: string[]) => dispatch({ type: ActionType.value, payload: value[0] })}
-                                    value={[state.value]}
-                                    popupClassName={`cascader-popup options-${getvalueOptions().length} value`}
-                                    allowClear={false}
-                                    placeholder=''
-                                    size='small'
-                                />
-                            </div>
+                            {!isNumericFilterBy() && (
+                                <div className='filter-option-value'>
+                                    <Cascader
+                                        options={getValueOptions()}
+                                        // eslint-disable-next-line max-len
+                                        onChange={(value: string[]) => dispatch({ type: ActionType.value, payload: value[0] })}
+                                        value={[state.value]}
+                                        popupClassName={`cascader-popup options-${getValueOptions().length} value`}
+                                        allowClear={false}
+                                        placeholder=''
+                                        size='small'
+                                    />
+                                </div>
+                            )}
+                            {isNumericFilterBy() && (
+                                <div className='filter-option-value'>
+                                    <AutoComplete
+                                        className='numeric-autocomplete'
+                                        dataSource={getMemorizedFilters()[state.filterBy] ?? []}
+                                        // eslint-disable-next-line max-len
+                                        filterOption={(inputValue, option) => `${option.props.children}`.indexOf(inputValue) >= 0}
+                                        // eslint-disable-next-line max-len
+                                        onChange={(value: SelectValue) => dispatch({ type: ActionType.value, payload: value })}
+                                        placeholder=''
+                                        size='small'
+                                    />
+                                </div>
+                            )}
+                            {isPixelFilterBy() && <span>px</span>}
                         </div>
                     </div>
                 )}
@@ -296,13 +343,7 @@ const AnnotationFilterPanel = ({
 
             <div className='filter-action-wrapper'>
                 <Button onClick={() => alert('Combine')}>Combine</Button>
-                <Button
-                    type='primary'
-                    onClick={() => {
-                        dispatch({ type: ActionType.reset });
-                        onAddNew(state);
-                    }}
-                >
+                <Button type='primary' onClick={() => onAddNew(state)}>
                     Add new
                 </Button>
             </div>
