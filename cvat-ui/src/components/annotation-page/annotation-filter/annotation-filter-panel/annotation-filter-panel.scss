@@ -186,3 +186,9 @@ $options-quantity-limit: 10;
         }
     }
 }
+
+.ant-select-dropdown {
+    ul {
+        max-height: $grid-unit-size * 40;
+    }
+}
