@@ -25,6 +25,9 @@ interface State {
     filterBy: string;
     operator: string;
     value: string;
+    attribute: string;
+    attributeOperator: string;
+    attributeValue: string;
 }
 interface MemorizedFilters {
     width?: string[];
@@ -38,6 +41,9 @@ enum ActionType {
     filterBy,
     operator,
     value,
+    attribute,
+    attributeOperator,
+    attributeValue,
     reset,
 }
 
@@ -155,6 +161,12 @@ const reducer = (state: State, action: { type: ActionType; payload?: any }): Sta
             return { ...state, operator: action.payload };
         case ActionType.value:
             return { ...state, value: action.payload };
+        case ActionType.attribute:
+            return { ...state, attribute: action.payload };
+        case ActionType.attributeOperator:
+            return { ...state, attributeOperator: action.payload };
+        case ActionType.attributeValue:
+            return { ...state, attributeValue: action.payload };
         case ActionType.reset:
             return {} as State;
         default:
@@ -167,6 +179,8 @@ const AnnotationFilterPanel = ({
 }: Props): ReactElement => {
     const [state, dispatch] = useReducer(reducer, {} as State);
     const annotation: AnnotationState = useSelector((globalState: CombinedState) => globalState.annotation);
+
+    console.log(annotation);
 
     const isAttributeFilterBy = (): boolean => FilterByValues.attribute === state.filterBy;
     const isBooleanFilterBy = (): boolean => Object.values(BooleanFilterByOptions).includes(state.filterBy);
@@ -228,6 +242,15 @@ const AnnotationFilterPanel = ({
                 return [];
         }
     };
+
+    const getAttributeOptions = (): Record<string, any>[] => annotation.job.labels
+        .find((item: Record<string, any>) => item.name === state.value)
+        ?.attributes.map((attr: Record<string, any>) => ({ label: attr.name, value: attr.name }));
+
+    const getAttributeValueOptions = (): Record<string, any>[] => annotation.job.labels
+        .find((item: Record<string, any>) => item.name === state.value)
+        ?.attributes.find((attr: Record<string, any>) => attr.name === state.attribute)
+        ?.values.map((val: any) => ({ label: val.toString(), value: val.toString() }));
 
     return (
         <Modal
@@ -368,6 +391,57 @@ const AnnotationFilterPanel = ({
                                 />
                             </div>
                             <span>label</span>
+                        </div>
+                    </div>
+                )}
+                {isAttributeFilterBy() && state.value && (
+                    <div className='filter-option'>
+                        <span className='filter-option-label'>Attribute</span>
+                        <div className='filter-option-value-wrapper'>
+                            <div className='filter-option-value'>
+                                <Cascader
+                                    options={getAttributeOptions()}
+                                    // eslint-disable-next-line max-len
+                                    onChange={(value: string[]) => dispatch({ type: ActionType.attribute, payload: value[0] })}
+                                    value={[state.attribute]}
+                                    // eslint-disable-next-line max-len
+                                    popupClassName={`cascader-popup options-${getValueOptions().length}`}
+                                    allowClear={false}
+                                    placeholder=''
+                                    size='small'
+                                />
+                            </div>
+                        </div>
+                    </div>
+                )}
+                {isAttributeFilterBy() && state.attribute && (
+                    <div className='filter-option'>
+                        <span className='filter-option-label'>Value</span>
+                        <div className='filter-option-value-wrapper'>
+                            <div className='filter-option-value operator'>
+                                <Cascader
+                                    options={[{ label: '!=', value: '!=' }]}
+                                    // eslint-disable-next-line max-len
+                                    onChange={(value: string[]) => dispatch({ type: ActionType.attributeOperator, payload: value[0] })}
+                                    value={[state.attributeOperator]}
+                                    popupClassName={`cascader-popup options-${getOperatorOptions().length} operator`}
+                                    allowClear={false}
+                                    placeholder=''
+                                    size='small'
+                                />
+                            </div>
+                            <div className='filter-option-value'>
+                                <Cascader
+                                    options={getAttributeValueOptions()}
+                                    // eslint-disable-next-line max-len
+                                    onChange={(value: string[]) => dispatch({ type: ActionType.attributeValue, payload: value[0] })}
+                                    value={[state.attributeValue]}
+                                    popupClassName={`cascader-popup options-${getValueOptions().length} value`}
+                                    allowClear={false}
+                                    placeholder=''
+                                    size='small'
+                                />
+                            </div>
                         </div>
                     </div>
                 )}
