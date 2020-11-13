@@ -185,6 +185,14 @@ $options-quantity-limit: 10;
             width: $value-width;
         }
     }
+
+    &.value-label-postfix {
+        width: $grid-unit-size * 19.5;
+
+        ul {
+            width: $grid-unit-size * 19.5;
+        }
+    }
 }
 
 .ant-select-dropdown {

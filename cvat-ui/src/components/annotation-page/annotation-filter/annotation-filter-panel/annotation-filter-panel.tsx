@@ -352,13 +352,16 @@ const AnnotationFilterPanel = ({
                     <div className='filter-option'>
                         <span className='filter-option-label'>List for</span>
                         <div className='filter-option-value-wrapper'>
-                            <div className='filter-option-value operator'>
+                            <div className='filter-option-value'>
                                 <Cascader
                                     options={getValueOptions()}
                                     // eslint-disable-next-line max-len
                                     onChange={(value: string[]) => dispatch({ type: ActionType.value, payload: value[0] })}
                                     value={[state.value]}
-                                    popupClassName={`cascader-popup options-${getValueOptions().length} value`}
+                                    // eslint-disable-next-line max-len
+                                    popupClassName={`cascader-popup options-${
+                                        getValueOptions().length
+                                    } value-label-postfix`}
                                     allowClear={false}
                                     placeholder=''
                                     size='small'
