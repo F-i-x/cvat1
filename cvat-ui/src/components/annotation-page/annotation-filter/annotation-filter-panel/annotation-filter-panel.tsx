@@ -44,6 +44,7 @@ enum ActionType {
     attribute,
     attributeOperator,
     attributeValue,
+    partialReset,
     reset,
 }
 
@@ -167,6 +168,15 @@ const reducer = (state: State, action: { type: ActionType; payload?: any }): Sta
             return { ...state, attributeOperator: action.payload };
         case ActionType.attributeValue:
             return { ...state, attributeValue: action.payload };
+        case ActionType.partialReset:
+            return {
+                ...state,
+                value: '',
+                operator: '',
+                attribute: '',
+                attributeOperator: '',
+                attributeValue: '',
+            };
         case ActionType.reset:
             return {} as State;
         default:
@@ -180,7 +190,7 @@ const AnnotationFilterPanel = ({
     const [state, dispatch] = useReducer(reducer, {} as State);
     const annotation: AnnotationState = useSelector((globalState: CombinedState) => globalState.annotation);
 
-    console.log(annotation);
+    // console.log(annotation);
 
     const isAttributeFilterBy = (): boolean => FilterByValues.attribute === state.filterBy;
     const isBooleanFilterBy = (): boolean => Object.values(BooleanFilterByOptions).includes(state.filterBy);
@@ -207,7 +217,7 @@ const AnnotationFilterPanel = ({
     }, [isVisible]);
 
     useEffect(() => {
-        dispatch({ type: ActionType.value, payload: '' });
+        dispatch({ type: ActionType.partialReset });
     }, [state.filterBy]);
 
     useEffect(() => {
