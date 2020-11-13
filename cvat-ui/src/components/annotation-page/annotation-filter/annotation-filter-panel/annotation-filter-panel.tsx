@@ -10,7 +10,7 @@ import { SelectValue } from 'antd/lib/select';
 import PropTypes from 'prop-types';
 import React, { ReactElement, useEffect, useReducer } from 'react';
 import { useSelector } from 'react-redux';
-import { CombinedState } from 'reducers/interfaces';
+import { AnnotationState, CombinedState } from 'reducers/interfaces';
 import './annotation-filter-panel.scss';
 
 interface Props {
@@ -99,12 +99,12 @@ enum BooleanFilterByOptions {
     empty_frame,
 }
 
-const concatenatorOptions: { [key: string]: string }[] = [
+const concatenatorOptions: Record<string, string>[] = [
     { label: 'and (&)', value: ConcatenatorOptionsValues.and },
     { label: 'or (|)', value: ConcatenatorOptionsValues.or },
 ];
 
-const filterByOptions: { [key: string]: string | FilterByValues }[] = [
+const filterByOptions: Record<string, string | FilterByValues>[] = [
     { label: 'Label', value: FilterByValues.label },
     { label: 'Width', value: FilterByValues.width },
     { label: 'Height', value: FilterByValues.height },
@@ -117,17 +117,17 @@ const filterByOptions: { [key: string]: string | FilterByValues }[] = [
     { label: 'Empty Frame', value: FilterByValues.emptyFrame },
 ];
 
-const filterByBooleanOptions: { [key: string]: string | boolean }[] = [
+const filterByBooleanOptions: Record<string, string | boolean>[] = [
     { label: 'True', value: true },
     { label: 'False', value: false },
 ];
 
-const filterByTypeOptions: { [key: string]: string }[] = [
+const filterByTypeOptions: Record<string, string>[] = [
     { label: 'Shape', value: FilterByTypeValues.shape },
     { label: 'Track', value: FilterByTypeValues.track },
 ];
 
-const filterByShapeOptions: { [key: string]: string }[] = [
+const filterByShapeOptions: Record<string, string>[] = [
     { label: 'Rectangle', value: FilterByShapeValues.rectangle },
     { label: 'Points', value: FilterByShapeValues.points },
     { label: 'Polyline', value: FilterByShapeValues.polyline },
@@ -136,7 +136,7 @@ const filterByShapeOptions: { [key: string]: string }[] = [
     { label: 'Tag', value: FilterByShapeValues.tag },
 ];
 
-const operatorOptions: { [key: string]: string | boolean }[] = [
+const operatorOptions: Record<string, string | boolean>[] = [
     { label: OperatorOptionsValues.eq, value: OperatorOptionsValues.eq, any: true },
     { label: OperatorOptionsValues.neq, value: OperatorOptionsValues.neq, any: true },
     { label: OperatorOptionsValues.gt, value: OperatorOptionsValues.gt, any: false },
@@ -166,8 +166,9 @@ const AnnotationFilterPanel = ({
     isFirst, isVisible, onClose, onAddNew,
 }: Props): ReactElement => {
     const [state, dispatch] = useReducer(reducer, {} as State);
-    const labels = useSelector((globalState: CombinedState) => globalState.annotation.job.labels);
+    const annotation: AnnotationState = useSelector((globalState: CombinedState) => globalState.annotation);
 
+    const isAttributeFilterBy = (): boolean => FilterByValues.attribute === state.filterBy;
     const isBooleanFilterBy = (): boolean => Object.values(BooleanFilterByOptions).includes(state.filterBy);
     const isNumericFilterBy = (): boolean => Object.values(NumericFilterByOptions).includes(state.filterBy);
     const isPixelFilterBy = (): boolean => Object.values(PixelFilterByOptions).includes(state.filterBy);
@@ -201,17 +202,21 @@ const AnnotationFilterPanel = ({
         if (!isFirst) dispatch({ type: ActionType.concatenator, payload: ConcatenatorOptionsValues.and });
     }, [onAddNew]);
 
-    const getOperatorOptions = (): { [key: string]: any }[] => {
+    const getOperatorOptions = (): Record<string, any>[] => {
         if (!Object.values(NumericFilterByOptions).includes(state.filterBy)) {
             return operatorOptions.filter((option) => option.any);
         }
         return operatorOptions;
     };
 
-    const getValueOptions = (): { [key: string]: any }[] => {
+    const getValueOptions = (): Record<string, any>[] => {
         switch (state.filterBy) {
             case FilterByValues.label:
-                return labels.map((item) => ({ label: item.name, value: item.name }));
+            case FilterByValues.attribute:
+                return annotation.job.labels.map((item: Record<string, any>) => ({
+                    label: item.name,
+                    value: item.name,
+                }));
             case FilterByValues.type:
                 return filterByTypeOptions;
             case FilterByValues.shape:
@@ -271,7 +276,7 @@ const AnnotationFilterPanel = ({
                         </div>
                     </div>
                 </div>
-                {state.filterBy && !isBooleanFilterBy() && (
+                {state.filterBy && !isBooleanFilterBy() && !isAttributeFilterBy() && (
                     <div className='filter-option'>
                         <span className='filter-option-label'>
                             {filterByOptions.find((option) => option.value === state.filterBy)?.label}
@@ -279,7 +284,6 @@ const AnnotationFilterPanel = ({
                         <div className='filter-option-value-wrapper'>
                             <div className='filter-option-value operator'>
                                 <Cascader
-                                    // eslint-disable-next-line max-len
                                     options={getOperatorOptions()}
                                     // eslint-disable-next-line max-len
                                     onChange={(value: string[]) => dispatch({ type: ActionType.operator, payload: value[0] })}
@@ -344,8 +348,27 @@ const AnnotationFilterPanel = ({
                         </div>
                     </div>
                 )}
+                {isAttributeFilterBy() && (
+                    <div className='filter-option'>
+                        <span className='filter-option-label'>List for</span>
+                        <div className='filter-option-value-wrapper'>
+                            <div className='filter-option-value operator'>
+                                <Cascader
+                                    options={getValueOptions()}
+                                    // eslint-disable-next-line max-len
+                                    onChange={(value: string[]) => dispatch({ type: ActionType.value, payload: value[0] })}
+                                    value={[state.value]}
+                                    popupClassName={`cascader-popup options-${getValueOptions().length} value`}
+                                    allowClear={false}
+                                    placeholder=''
+                                    size='small'
+                                />
+                            </div>
+                            <span>label</span>
+                        </div>
+                    </div>
+                )}
             </div>
-
             <div className='filter-action-wrapper'>
                 <Button onClick={() => alert('Combine')}>Combine</Button>
                 <Button type='primary' onClick={() => onAddNew(state)}>
