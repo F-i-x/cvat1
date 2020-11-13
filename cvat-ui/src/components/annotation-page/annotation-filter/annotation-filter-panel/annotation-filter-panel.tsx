@@ -9,6 +9,8 @@ import { RadioChangeEvent } from 'antd/lib/radio';
 import { SelectValue } from 'antd/lib/select';
 import PropTypes from 'prop-types';
 import React, { ReactElement, useEffect, useReducer } from 'react';
+import { useSelector } from 'react-redux';
+import { CombinedState } from 'reducers/interfaces';
 import './annotation-filter-panel.scss';
 
 interface Props {
@@ -164,6 +166,7 @@ const AnnotationFilterPanel = ({
     isFirst, isVisible, onClose, onAddNew,
 }: Props): ReactElement => {
     const [state, dispatch] = useReducer(reducer, {} as State);
+    const labels = useSelector((globalState: CombinedState) => globalState.annotation.job.labels);
 
     const isBooleanFilterBy = (): boolean => Object.values(BooleanFilterByOptions).includes(state.filterBy);
     const isNumericFilterBy = (): boolean => Object.values(NumericFilterByOptions).includes(state.filterBy);
@@ -207,6 +210,8 @@ const AnnotationFilterPanel = ({
 
     const getValueOptions = (): { [key: string]: any }[] => {
         switch (state.filterBy) {
+            case FilterByValues.label:
+                return labels.map((item) => ({ label: item.name, value: item.name }));
             case FilterByValues.type:
                 return filterByTypeOptions;
             case FilterByValues.shape:
