@@ -419,6 +419,22 @@
                 }
             }
 
+            async function moveTaskToProject(id, data) {
+                const { backendAPI } = config;
+
+                try {
+                    const response = await Axios.patch(`${backendAPI}/tasks/${id}/move`, JSON.stringify(data), {
+                        proxy: config.proxy,
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    });
+                    return response.data.results;
+                } catch (errorData) {
+                    throw generateError(errorData);
+                }
+            }
+
             async function deleteTask(id) {
                 const { backendAPI } = config;
 
@@ -926,6 +942,7 @@
                             createTask,
                             deleteTask,
                             exportDataset,
+                            moveToProject: moveTaskToProject,
                         }),
                         writable: false,
                     },

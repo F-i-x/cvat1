@@ -9,7 +9,13 @@ import ActionsMenuComponent, { Actions } from 'components/actions-menu/actions-m
 import { CombinedState } from 'reducers/interfaces';
 
 import { modelsActions } from 'actions/models-actions';
-import { dumpAnnotationsAsync, loadAnnotationsAsync, exportDatasetAsync, deleteTaskAsync } from 'actions/tasks-actions';
+import {
+    dumpAnnotationsAsync,
+    loadAnnotationsAsync,
+    exportDatasetAsync,
+    deleteTaskAsync,
+    showMoveTaskModal,
+} from 'actions/tasks-actions';
 import { ClickParam } from 'antd/lib/menu';
 
 interface OwnProps {
@@ -30,6 +36,7 @@ interface DispatchToProps {
     exportDataset: (taskInstance: any, exporter: any) => void;
     deleteTask: (taskInstance: any) => void;
     openRunModelWindow: (taskInstance: any) => void;
+    openMoveTaskToProjectWindow: (taskInstance: any) => void;
 }
 
 function mapStateToProps(state: CombinedState, own: OwnProps): StateToProps {
@@ -70,6 +77,9 @@ function mapDispatchToProps(dispatch: any): DispatchToProps {
         openRunModelWindow: (taskInstance: any): void => {
             dispatch(modelsActions.showRunModelDialog(taskInstance));
         },
+        openMoveTaskToProjectWindow: (taskInstance: any): void => {
+            dispatch(showMoveTaskModal(taskInstance));
+        },
     };
 }
 
@@ -87,6 +97,7 @@ function ActionsMenuContainer(props: OwnProps & StateToProps & DispatchToProps):
         exportDataset,
         deleteTask,
         openRunModelWindow,
+        openMoveTaskToProjectWindow,
     } = props;
 
     function onClickMenu(params: ClickParam, file?: File): void {
@@ -116,10 +127,11 @@ function ActionsMenuContainer(props: OwnProps & StateToProps & DispatchToProps):
             if (action === Actions.DELETE_TASK) {
                 deleteTask(taskInstance);
             } else if (action === Actions.OPEN_BUG_TRACKER) {
-                // eslint-disable-next-line
                 window.open(`${taskInstance.bugTracker}`, '_blank');
             } else if (action === Actions.RUN_AUTO_ANNOTATION) {
                 openRunModelWindow(taskInstance);
+            } else if (action === Actions.MOVE_TASK_TO_PROJECT) {
+                openMoveTaskToProjectWindow(taskInstance);
             }
         }
     }

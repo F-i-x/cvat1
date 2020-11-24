@@ -1445,6 +1445,37 @@
             const result = await PluginRegistry.apiWrapper.call(this, Task.prototype.delete);
             return result;
         }
+
+        /**
+         * @typedef {Object} LabelMap
+         * @property {number} label_id Label Id of the current taqsk
+         * @property {number | null} new_label_id  label Id for the new task
+         * @property {boolean} clear_attributes clear attributes existing annotation when task will be moved
+         * @property {boolean} delete means deletion label and it's annotations when task will be moved
+         * @property {boolean} create means creation new label with the same name when task will be moved
+         */
+        /**
+         * Method move task to selected project
+         * @method moveToProject
+         * @memberof module:API.cvat.classes.Task
+         * @param {integer} [projectId] - target project Id where task will be moved
+         * @param {LabelMap[]} labelMap - label mapping with moving parameters
+         * @options
+         * @readonly
+         * @instance
+         * @async
+         * @throws {module:API.cvat.exceptions.ServerError}
+         * @throws {module:API.cvat.exceptions.PluginError}
+         */
+        async moveToProject(projectId, labelMap) {
+            const result = await PluginRegistry.apiWrapper.call(
+                this,
+                Task.prototype.moveToProject,
+                projectId,
+                labelMap,
+            );
+            return result;
+        }
     }
 
     module.exports = {
@@ -1988,5 +2019,17 @@
     Task.prototype.logger.log.implementation = async function (logType, payload, wait) {
         const result = await loggerStorage.log(logType, { ...payload, task_id: this.id }, wait);
         return result;
+    };
+
+    Task.prototype.moveToProject.implementation = async function (projectId, labelMap) {
+        const moveSpec = {
+            action: 'move',
+            project_id: projectId,
+            label_map: labelMap,
+        };
+
+        const response = await serverProxy.tasks.moveToProject(this.id, moveSpec);
+        const [task] = response.map((_task) => new Task(_task));
+        return task;
     };
 })();

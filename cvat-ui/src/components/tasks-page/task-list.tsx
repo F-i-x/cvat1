@@ -7,6 +7,7 @@ import { Row, Col } from 'antd/lib/grid';
 import Pagination from 'antd/lib/pagination';
 
 import ModelRunnerModal from 'components/model-runner-modal/model-runner-dialog';
+import MoveTaskModal from 'components/move-task-modal/move-task-modal';
 import TaskItem from 'containers/tasks-page/task-item';
 
 export interface ContentListProps {
@@ -17,7 +18,9 @@ export interface ContentListProps {
 }
 
 export default function TaskListComponent(props: ContentListProps): JSX.Element {
-    const { currentTasksIndexes, numberOfTasks, currentPage, onSwitchPage } = props;
+    const {
+        currentTasksIndexes, numberOfTasks, currentPage, onSwitchPage,
+    } = props;
     const taskViews = currentTasksIndexes.map((tid, id): JSX.Element => <TaskItem idx={id} taskID={tid} key={tid} />);
 
     return (
@@ -40,6 +43,7 @@ export default function TaskListComponent(props: ContentListProps): JSX.Element 
                 </Col>
             </Row>
             <ModelRunnerModal />
+            <MoveTaskModal />
         </>
     );
 }

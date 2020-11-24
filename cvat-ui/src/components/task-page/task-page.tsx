@@ -13,6 +13,7 @@ import Result from 'antd/lib/result';
 import DetailsContainer from 'containers/task-page/details';
 import JobListContainer from 'containers/task-page/job-list';
 import ModelRunnerModal from 'components/model-runner-modal/model-runner-dialog';
+import MoveTaskModal from 'components/move-task-modal/move-task-modal';
 import { Task } from 'reducers/interfaces';
 import TopBarComponent from './top-bar';
 
@@ -37,7 +38,9 @@ class TaskPageComponent extends React.PureComponent<Props> {
     }
 
     public render(): JSX.Element {
-        const { task, fetching, updating, getTask } = this.props;
+        const {
+            task, fetching, updating, getTask,
+        } = this.props;
 
         if (task === null || updating) {
             if (task === null && !fetching) {
@@ -68,6 +71,7 @@ class TaskPageComponent extends React.PureComponent<Props> {
                     </Col>
                 </Row>
                 <ModelRunnerModal />
+                <MoveTaskModal />
             </>
         );
     }

@@ -12,6 +12,7 @@ const core = getCore();
 
 type Props = {
     value: number | null;
+    exceptId?: number;
     onSelect: (id: number | null) => void;
 };
 
@@ -21,7 +22,7 @@ type Project = {
 };
 
 export default function ProjectSearchField(props: Props): JSX.Element {
-    const { value, onSelect } = props;
+    const { value, exceptId, onSelect } = props;
     const [searchPhrase, setSearchPhrase] = useState('');
 
     const [projects, setProjects] = useState<Project[]>([]);
@@ -43,8 +44,9 @@ export default function ProjectSearchField(props: Props): JSX.Element {
     const handleFocus = (open: boolean): void => {
         if (!projects.length && open) {
             core.projects.searchNames().then((result: Project[]) => {
-                if (result) {
-                    setProjects(result);
+                const projectsResponse = result.filter((project) => project.id !== exceptId);
+                if (projectsResponse) {
+                    setProjects(projectsResponse);
                 }
             });
         }
@@ -62,13 +64,17 @@ export default function ProjectSearchField(props: Props): JSX.Element {
         if (value && !projects.filter((project) => project.id === value).length) {
             core.projects.get({ id: value }).then((result: Project[]) => {
                 const [project] = result;
-                setProjects([...projects, {
-                    id: project.id,
-                    name: project.name,
-                }]);
+                setProjects([
+                    ...projects,
+                    {
+                        id: project.id,
+                        name: project.name,
+                    },
+                ]);
                 setSearchPhrase(project.name);
-                onSelect(project.id);
             });
+        } else if (!value) {
+            setSearchPhrase('');
         }
     }, [value]);
 
@@ -80,12 +86,10 @@ export default function ProjectSearchField(props: Props): JSX.Element {
             onSelect={handleSelect}
             className='cvat-project-search-field'
             onDropdownVisibleChange={handleFocus}
-            dataSource={
-                projects.map((proj) => ({
-                    value: proj.id.toString(),
-                    text: proj.name,
-                }))
-            }
+            dataSource={projects.map((proj) => ({
+                value: proj.id.toString(),
+                text: proj.name,
+            }))}
         />
     );
 }
