@@ -255,7 +255,20 @@ const AnnotationFilterPanel = ({
 
     const getAttributeOptions = (): Record<string, any>[] => annotation.job.labels
         .find((item: Record<string, any>) => item.name === state.value)
-        ?.attributes.map((attr: Record<string, any>) => ({ label: attr.name, value: attr.name }));
+    // eslint-disable-next-line max-len
+        ?.attributes.map((attr: Record<string, any>) => ({
+            label: attr.name,
+            value: attr.name,
+            type: attr.inputType,
+        }));
+
+    const getAttributeOperatorOptions = (): Record<string, any>[] => {
+        const currentAttr = getAttributeOptions().find((attr: Record<string, any>) => attr.label === state.attribute);
+        if (currentAttr?.type !== 'number') {
+            return operatorOptions.filter((option) => option.any);
+        }
+        return operatorOptions;
+    };
 
     const getAttributeValueOptions = (): Record<string, any>[] => annotation.job.labels
         .find((item: Record<string, any>) => item.name === state.value)
@@ -415,7 +428,7 @@ const AnnotationFilterPanel = ({
                                     onChange={(value: string[]) => dispatch({ type: ActionType.attribute, payload: value[0] })}
                                     value={[state.attribute]}
                                     // eslint-disable-next-line max-len
-                                    popupClassName={`cascader-popup options-${getValueOptions().length}`}
+                                    popupClassName={`cascader-popup options-${getAttributeOptions().length}`}
                                     allowClear={false}
                                     placeholder=''
                                     size='small'
@@ -430,11 +443,14 @@ const AnnotationFilterPanel = ({
                         <div className='filter-option-value-wrapper'>
                             <div className='filter-option-value operator'>
                                 <Cascader
-                                    options={[{ label: '!=', value: '!=' }]}
+                                    options={getAttributeOperatorOptions()}
                                     // eslint-disable-next-line max-len
                                     onChange={(value: string[]) => dispatch({ type: ActionType.attributeOperator, payload: value[0] })}
                                     value={[state.attributeOperator]}
-                                    popupClassName={`cascader-popup options-${getOperatorOptions().length} operator`}
+                                    // eslint-disable-next-line max-len
+                                    popupClassName={`cascader-popup options-${
+                                        getAttributeOperatorOptions().length
+                                    } operator`}
                                     allowClear={false}
                                     placeholder=''
                                     size='small'
@@ -446,7 +462,7 @@ const AnnotationFilterPanel = ({
                                     // eslint-disable-next-line max-len
                                     onChange={(value: string[]) => dispatch({ type: ActionType.attributeValue, payload: value[0] })}
                                     value={[state.attributeValue]}
-                                    popupClassName={`cascader-popup options-${getValueOptions().length} value`}
+                                    popupClassName={`cascader-popup options-${getAttributeValueOptions().length} value`}
                                     allowClear={false}
                                     placeholder=''
                                     size='small'
