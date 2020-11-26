@@ -32,8 +32,9 @@ function AnnotationFilterItem({ item }: Props): ReactElement {
                 }}
                 closable
             >
-                {!isBooleanFilterBy() && `${item.filterBy}${item.operator}${item.value}`}
                 {isBooleanFilterBy() && `${item.filterBy} is ${item.value}`}
+                {item.attribute && `attr["${item.attribute}"]${item.attributeOperator}${item.attributeValue}`}
+                {!isBooleanFilterBy() && !item.attribute && `${item.filterBy}${item.operator}${item.value}`}
             </Tag>
         </>
     );
