@@ -36,6 +36,15 @@ interface MemorizedFilters {
     clientID?: string[];
 }
 
+enum StateLevels {
+    concatenator,
+    filterBy,
+    operator,
+    value,
+    attribute,
+    attributeOperator,
+    attributeValue,
+}
 enum ActionType {
     concatenator,
     filterBy,
@@ -169,13 +178,14 @@ const reducer = (state: State, action: { type: ActionType; payload?: any }): Sta
         case ActionType.attributeValue:
             return { ...state, attributeValue: action.payload };
         case ActionType.partialReset:
+            if (!action.payload) return state;
             return {
                 ...state,
-                value: '',
-                operator: '',
-                attribute: '',
-                attributeOperator: '',
-                attributeValue: '',
+                operator: action.payload < StateLevels.operator ? '' : state.operator,
+                value: action.payload < StateLevels.operator ? '' : state.value,
+                attribute: action.payload < StateLevels.attribute ? '' : state.attribute,
+                attributeOperator: action.payload < StateLevels.attributeOperator ? '' : state.attributeOperator,
+                attributeValue: action.payload < StateLevels.attributeOperator ? '' : state.attributeValue,
             };
         case ActionType.reset:
             return {} as State;
@@ -189,8 +199,6 @@ const AnnotationFilterPanel = ({
 }: Props): ReactElement => {
     const [state, dispatch] = useReducer(reducer, {} as State);
     const annotation: AnnotationState = useSelector((globalState: CombinedState) => globalState.annotation);
-
-    // console.log(annotation);
 
     const isAttributeFilterBy = (): boolean => FilterByValues.attribute === state.filterBy;
     const isBooleanFilterBy = (): boolean => Object.values(BooleanFilterByOptions).includes(state.filterBy);
@@ -209,16 +217,34 @@ const AnnotationFilterPanel = ({
     };
 
     useEffect(() => {
+        dispatch({ type: ActionType.partialReset, payload: StateLevels.concatenator });
+    }, [state.concatenator]);
+    useEffect(() => {
+        dispatch({ type: ActionType.partialReset, payload: StateLevels.filterBy });
+    }, [state.filterBy]);
+    useEffect(() => {
+        dispatch({ type: ActionType.partialReset, payload: StateLevels.operator });
+    }, [state.operator]);
+    useEffect(() => {
+        dispatch({ type: ActionType.partialReset, payload: StateLevels.value });
+    }, [state.value]);
+    useEffect(() => {
+        dispatch({ type: ActionType.partialReset, payload: StateLevels.attribute });
+    }, [state.attribute]);
+    useEffect(() => {
+        dispatch({ type: ActionType.partialReset, payload: StateLevels.attributeOperator });
+    }, [state.attributeOperator]);
+    useEffect(() => {
+        dispatch({ type: ActionType.partialReset, payload: StateLevels.attributeValue });
+    }, [state.attributeValue]);
+
+    useEffect(() => {
         setTimeout(() => {
             dispatch({ type: ActionType.reset });
             if (isFirst) return;
             dispatch({ type: ActionType.concatenator, payload: ConcatenatorOptionsValues.and });
         }, 100);
     }, [isVisible]);
-
-    useEffect(() => {
-        dispatch({ type: ActionType.partialReset });
-    }, [state.filterBy]);
 
     useEffect(() => {
         if (isNumericFilterBy()) setMemorizedFilters();
@@ -334,7 +360,7 @@ const AnnotationFilterPanel = ({
                                     // eslint-disable-next-line max-len
                                     onChange={(value: string[]) => dispatch({ type: ActionType.operator, payload: value[0] })}
                                     value={[state.operator]}
-                                    popupClassName={`cascader-popup options-${getOperatorOptions().length} operator`}
+                                    popupClassName={`cascader-popup options-${getOperatorOptions()?.length} operator`}
                                     allowClear={false}
                                     placeholder=''
                                     size='small'
@@ -347,7 +373,7 @@ const AnnotationFilterPanel = ({
                                         // eslint-disable-next-line max-len
                                         onChange={(value: string[]) => dispatch({ type: ActionType.value, payload: value[0] })}
                                         value={[state.value]}
-                                        popupClassName={`cascader-popup options-${getValueOptions().length} value`}
+                                        popupClassName={`cascader-popup options-${getValueOptions()?.length} value`}
                                         allowClear={false}
                                         placeholder=''
                                         size='small'
@@ -406,7 +432,7 @@ const AnnotationFilterPanel = ({
                                     value={[state.value]}
                                     // eslint-disable-next-line max-len
                                     popupClassName={`cascader-popup options-${
-                                        getValueOptions().length
+                                        getValueOptions()?.length
                                     } value-label-postfix`}
                                     allowClear={false}
                                     placeholder=''
@@ -428,7 +454,7 @@ const AnnotationFilterPanel = ({
                                     onChange={(value: string[]) => dispatch({ type: ActionType.attribute, payload: value[0] })}
                                     value={[state.attribute]}
                                     // eslint-disable-next-line max-len
-                                    popupClassName={`cascader-popup options-${getAttributeOptions().length}`}
+                                    popupClassName={`cascader-popup options-${getAttributeOptions()?.length}`}
                                     allowClear={false}
                                     placeholder=''
                                     size='small'
@@ -449,7 +475,7 @@ const AnnotationFilterPanel = ({
                                     value={[state.attributeOperator]}
                                     // eslint-disable-next-line max-len
                                     popupClassName={`cascader-popup options-${
-                                        getAttributeOperatorOptions().length
+                                        getAttributeOperatorOptions()?.length
                                     } operator`}
                                     allowClear={false}
                                     placeholder=''
@@ -462,7 +488,10 @@ const AnnotationFilterPanel = ({
                                     // eslint-disable-next-line max-len
                                     onChange={(value: string[]) => dispatch({ type: ActionType.attributeValue, payload: value[0] })}
                                     value={[state.attributeValue]}
-                                    popupClassName={`cascader-popup options-${getAttributeValueOptions().length} value`}
+                                    // eslint-disable-next-line max-len
+                                    popupClassName={`cascader-popup options-${
+                                        getAttributeValueOptions()?.length
+                                    } value`}
                                     allowClear={false}
                                     placeholder=''
                                     size='small'
