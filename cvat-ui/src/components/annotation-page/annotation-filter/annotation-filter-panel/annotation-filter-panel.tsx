@@ -304,9 +304,10 @@ const AnnotationFilterPanel = ({
         return operatorOptions;
     };
 
-    const getAttributeValueOptions = (): Record<string, any>[] => annotation.job.labels
-        .find((item: Record<string, any>) => item.name === state.value)
-        ?.attributes.find((attr: Record<string, any>) => attr.name === state.attribute)
+    // eslint-disable-next-line max-len
+    const getAttributeValueOptions = (): Record<string, any>[] => []
+        .concat(...(Object.values(annotation.job.attributes) as any[]))
+        .find((attr: Record<string, any>) => attr.name === state.attribute)
         ?.values.map((val: any) => ({ label: val.toString(), value: val.toString() }));
 
     return (
