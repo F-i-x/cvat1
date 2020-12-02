@@ -263,10 +263,12 @@ const AnnotationFilterPanel = ({
         switch (state.filterBy) {
             case FilterByValues.label:
             case FilterByValues.attribute:
-                return annotation.job.labels.map((item: Record<string, any>) => ({
-                    label: item.name,
-                    value: item.name,
-                }));
+                return [{ label: 'All', value: 'all' }].concat(
+                    ...annotation.job.labels.map((item: Record<string, any>) => ({
+                        label: item.name,
+                        value: item.name,
+                    })),
+                );
             case FilterByValues.type:
                 return filterByTypeOptions;
             case FilterByValues.shape:
@@ -279,14 +281,20 @@ const AnnotationFilterPanel = ({
         }
     };
 
-    const getAttributeOptions = (): Record<string, any>[] => annotation.job.labels
-        .find((item: Record<string, any>) => item.name === state.value)
-    // eslint-disable-next-line max-len
-        ?.attributes.map((attr: Record<string, any>) => ({
+    const getAttributeOptions = (): Record<string, any>[] => {
+        let attributeOptions: Record<string, any>[];
+        if (state.value === 'all') {
+            attributeOptions = [].concat(...(Object.values(annotation.job.attributes) as any[]));
+        } else {
+            attributeOptions =
+                annotation.job.labels.find((item: Record<string, any>) => item.name === state.value)?.attributes ?? [];
+        }
+        return attributeOptions.map((attr: Record<string, any>) => ({
             label: attr.name,
             value: attr.name,
             type: attr.inputType,
         }));
+    };
 
     const getAttributeOperatorOptions = (): Record<string, any>[] => {
         const currentAttr = getAttributeOptions().find((attr: Record<string, any>) => attr.label === state.attribute);
@@ -439,7 +447,10 @@ const AnnotationFilterPanel = ({
                                     size='small'
                                 />
                             </div>
-                            <span>label</span>
+                            <span>
+                                label
+                                {state.value === 'all' ? 's' : ''}
+                            </span>
                         </div>
                     </div>
                 )}
