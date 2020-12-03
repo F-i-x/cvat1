@@ -28,6 +28,8 @@ interface State {
     attribute: string;
     attributeOperator: string;
     attributeValue: string;
+    anotherAttributeLabel: string;
+    anotherAttributeValue: string;
 }
 interface MemorizedFilters {
     width?: string[];
@@ -44,7 +46,10 @@ enum StateLevels {
     attribute,
     attributeOperator,
     attributeValue,
+    anotherAttributeLabel,
+    anotherAttributeValue,
 }
+
 enum ActionType {
     concatenator,
     filterBy,
@@ -53,6 +58,8 @@ enum ActionType {
     attribute,
     attributeOperator,
     attributeValue,
+    anotherAttributeLabel,
+    anotherAttributeValue,
     partialReset,
     reset,
 }
@@ -177,6 +184,10 @@ const reducer = (state: State, action: { type: ActionType; payload?: any }): Sta
             return { ...state, attributeOperator: action.payload };
         case ActionType.attributeValue:
             return { ...state, attributeValue: action.payload };
+        case ActionType.anotherAttributeLabel:
+            return { ...state, anotherAttributeLabel: action.payload };
+        case ActionType.anotherAttributeValue:
+            return { ...state, anotherAttributeValue: action.payload };
         case ActionType.partialReset:
             if (!action.payload) return state;
             return {
@@ -186,6 +197,16 @@ const reducer = (state: State, action: { type: ActionType; payload?: any }): Sta
                 attribute: action.payload < StateLevels.attribute ? '' : state.attribute,
                 attributeOperator: action.payload < StateLevels.attributeOperator ? '' : state.attributeOperator,
                 attributeValue: action.payload < StateLevels.attributeOperator ? '' : state.attributeValue,
+                anotherAttributeLabel:
+                    action.payload < StateLevels.anotherAttributeLabel &&
+                    action.payload !== StateLevels.attributeOperator ?
+                        '' :
+                        state.anotherAttributeLabel,
+                anotherAttributeValue:
+                    action.payload < StateLevels.anotherAttributeValue &&
+                    action.payload !== StateLevels.attributeOperator ?
+                        '' :
+                        state.anotherAttributeValue,
             };
         case ActionType.reset:
             return {} as State;
@@ -237,6 +258,12 @@ const AnnotationFilterPanel = ({
     useEffect(() => {
         dispatch({ type: ActionType.partialReset, payload: StateLevels.attributeValue });
     }, [state.attributeValue]);
+    useEffect(() => {
+        dispatch({ type: ActionType.partialReset, payload: StateLevels.anotherAttributeLabel });
+    }, [state.anotherAttributeLabel]);
+    useEffect(() => {
+        dispatch({ type: ActionType.partialReset, payload: StateLevels.anotherAttributeValue });
+    }, [state.anotherAttributeValue]);
 
     useEffect(() => {
         setTimeout(() => {
@@ -479,41 +506,86 @@ const AnnotationFilterPanel = ({
                     </div>
                 )}
                 {isAttributeFilterBy() && state.attribute && (
-                    <div className='filter-option'>
-                        <span className='filter-option-label'>Value</span>
-                        <div className='filter-option-value-wrapper'>
-                            <div className='filter-option-value operator'>
-                                <Cascader
-                                    options={getAttributeOperatorOptions()}
-                                    // eslint-disable-next-line max-len
-                                    onChange={(value: string[]) => dispatch({ type: ActionType.attributeOperator, payload: value[0] })}
-                                    value={[state.attributeOperator]}
-                                    // eslint-disable-next-line max-len
-                                    popupClassName={`cascader-popup options-${
-                                        getAttributeOperatorOptions()?.length
-                                    } operator`}
-                                    allowClear={false}
-                                    placeholder=''
-                                    size='small'
-                                />
-                            </div>
-                            <div className='filter-option-value'>
-                                <Cascader
-                                    options={getAttributeValueOptions()}
-                                    // eslint-disable-next-line max-len
-                                    onChange={(value: string[]) => dispatch({ type: ActionType.attributeValue, payload: value[0] })}
-                                    value={[state.attributeValue]}
-                                    // eslint-disable-next-line max-len
-                                    popupClassName={`cascader-popup options-${
-                                        getAttributeValueOptions()?.length
-                                    } value`}
-                                    allowClear={false}
-                                    placeholder=''
-                                    size='small'
-                                />
+                    <>
+                        <div className='filter-option'>
+                            <span className='filter-option-label'>Value</span>
+                            <div className='filter-option-value-wrapper'>
+                                <div className='filter-option-value operator'>
+                                    <Cascader
+                                        options={getAttributeOperatorOptions()}
+                                        // eslint-disable-next-line max-len
+                                        onChange={(value: string[]) => dispatch({ type: ActionType.attributeOperator, payload: value[0] })}
+                                        value={[state.attributeOperator]}
+                                        popupClassName={`cascader-popup options-${
+                                            getAttributeOperatorOptions()?.length
+                                        } operator`}
+                                        allowClear={false}
+                                        placeholder=''
+                                        size='small'
+                                    />
+                                </div>
+                                <div className='filter-option-value'>
+                                    <Cascader
+                                        options={getAttributeValueOptions()}
+                                        // eslint-disable-next-line max-len
+                                        onChange={(value: string[]) => dispatch({ type: ActionType.attributeValue, payload: value[0] })}
+                                        value={[state.attributeValue]}
+                                        popupClassName={`cascader-popup options-${
+                                            getAttributeValueOptions()?.length
+                                        } value`}
+                                        allowClear={false}
+                                        placeholder=''
+                                        size='small'
+                                    />
+                                </div>
                             </div>
                         </div>
-                    </div>
+                        {state.attributeValue === 'anotherAttribute' && (
+                            <div className='filter-option'>
+                                <span className='filter-option-label'>List for</span>
+                                <div className='filter-option-value-wrapper'>
+                                    <div className='filter-option-value'>
+                                        <Cascader
+                                            options={getValueOptions()}
+                                            // eslint-disable-next-line max-len
+                                            onChange={(value: string[]) => dispatch({ type: ActionType.anotherAttributeLabel, payload: value[0] })}
+                                            value={[state.anotherAttributeLabel]}
+                                            popupClassName={`cascader-popup options-${
+                                                getValueOptions()?.length
+                                            } value-label-postfix`}
+                                            allowClear={false}
+                                            placeholder=''
+                                            size='small'
+                                        />
+                                    </div>
+                                    <span>
+                                        label
+                                        {state.anotherAttributeLabel === 'all' ? 's' : ''}
+                                    </span>
+                                </div>
+                            </div>
+                        )}
+                        {state.anotherAttributeLabel && (
+                            <div className='filter-option'>
+                                <span className='filter-option-label'>Attribute</span>
+                                <div className='filter-option-value-wrapper'>
+                                    <div className='filter-option-value'>
+                                        <Cascader
+                                            options={getAttributeOptions()}
+                                            // eslint-disable-next-line max-len
+                                            onChange={(value: string[]) => dispatch({ type: ActionType.anotherAttributeValue, payload: value[0] })}
+                                            value={[state.anotherAttributeValue]}
+                                            // eslint-disable-next-line max-len
+                                            popupClassName={`cascader-popup options-${getAttributeOptions()?.length}`}
+                                            allowClear={false}
+                                            placeholder=''
+                                            size='small'
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
             <div className='filter-action-wrapper'>
