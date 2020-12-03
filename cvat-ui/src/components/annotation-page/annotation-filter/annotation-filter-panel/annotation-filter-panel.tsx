@@ -304,11 +304,14 @@ const AnnotationFilterPanel = ({
         return operatorOptions;
     };
 
-    // eslint-disable-next-line max-len
-    const getAttributeValueOptions = (): Record<string, any>[] => []
-        .concat(...(Object.values(annotation.job.attributes) as any[]))
-        .find((attr: Record<string, any>) => attr.name === state.attribute)
-        ?.values.map((val: any) => ({ label: val.toString(), value: val.toString() }));
+    const getAttributeValueOptions = (): Record<string, any>[] => {
+        const valueOptions: any[] = []
+            .concat(...(Object.values(annotation.job.attributes) as any[]))
+            .find((attr: Record<string, any>) => attr.name === state.attribute)
+            ?.values.map((val: any) => ({ label: val.toString(), value: val.toString() }));
+        valueOptions.unshift({ label: 'Another attribute', value: 'anotherAttribute' });
+        return valueOptions;
+    };
 
     return (
         <Modal
