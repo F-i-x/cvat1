@@ -581,13 +581,14 @@ interface LabelMap {
 
 export function moveTaskToProjectAsync(
     taskInstance: any,
-    projectId: any,
+    projectId: number,
+    clearAssignee: boolean,
     labelMap: LabelMap[],
 ): ThunkAction<Promise<void>, {}, {}, AnyAction> {
     return async (dispatch: ActionCreator<Dispatch>): Promise<void> => {
         dispatch(moveTaskToProject());
         try {
-            await taskInstance.moveToProject(projectId, labelMap);
+            await taskInstance.moveToProject(projectId, clearAssignee, labelMap);
             const [task] = await cvat.tasks.get({ id: taskInstance.id });
             dispatch(moveTaskToProjectSuccess(task));
         } catch (error) {

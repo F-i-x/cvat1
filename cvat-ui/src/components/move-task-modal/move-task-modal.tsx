@@ -12,6 +12,7 @@ import Divider from 'antd/lib/divider';
 import notification from 'antd/lib/notification';
 import Icon from 'antd/lib/icon';
 import Tooltip from 'antd/lib/tooltip';
+import Checkbox from 'antd/lib/checkbox';
 
 import { CombinedState } from 'reducers/interfaces';
 import { closeMoveTaskModal, moveTaskToProjectAsync } from 'actions/tasks-actions';
@@ -29,6 +30,7 @@ export default function MoveTaskModal(): JSX.Element {
     const dispatch = useDispatch();
 
     const [projectId, setProjectId] = useState<number | null>(null);
+    const [clearAssignee, setClearAssignee] = useState(false);
     const [project, setProject] = useState<any>(null);
     const [values, setValues] = useState<{ [key: string]: LabelMapperItemValue }>({});
 
@@ -64,6 +66,7 @@ export default function MoveTaskModal(): JSX.Element {
             moveTaskToProjectAsync(
                 task,
                 projectId,
+                clearAssignee,
                 Object.values(values).map((value) => ({
                     label_id: value.labelId,
                     new_label_id: (value.newLabelId || 0) > 0 ? value.newLabelId : null,
@@ -115,6 +118,11 @@ export default function MoveTaskModal(): JSX.Element {
                 <Col>
                     <ProjectSearch exceptId={task?.projectId || undefined} value={projectId} onSelect={setProjectId} />
                 </Col>
+            </Row>
+            <Row>
+                <Checkbox checked={clearAssignee} onChange={(e) => setClearAssignee(e.target.checked)}>
+                    Clear assignee
+                </Checkbox>
             </Row>
             <Divider orientation='left'>Label mapping</Divider>
             {!!Object.keys(values).length &&
