@@ -423,7 +423,7 @@
                 const { backendAPI } = config;
 
                 try {
-                    const response = await Axios.patch(`${backendAPI}/tasks/${id}/move`, JSON.stringify(data), {
+                    const response = await Axios.post(`${backendAPI}/tasks/${id}/move`, JSON.stringify(data), {
                         proxy: config.proxy,
                         headers: {
                             'Content-Type': 'application/json',
