@@ -1459,7 +1459,6 @@
          * @method moveToProject
          * @memberof module:API.cvat.classes.Task
          * @param {integer} [projectId] - target project Id where task will be moved
-         * @param {boolean} [clearAssignee] - clear task assignee field with task moving
          * @param {LabelMap[]} labelMap - label mapping with moving parameters
          * @options
          * @readonly
@@ -1468,12 +1467,11 @@
          * @throws {module:API.cvat.exceptions.ServerError}
          * @throws {module:API.cvat.exceptions.PluginError}
          */
-        async moveToProject(projectId, clearAssignee, labelMap) {
+        async moveToProject(projectId, labelMap) {
             const result = await PluginRegistry.apiWrapper.call(
                 this,
                 Task.prototype.moveToProject,
                 projectId,
-                clearAssignee,
                 labelMap,
             );
             return result;
@@ -2023,9 +2021,9 @@
         return result;
     };
 
-    Task.prototype.moveToProject.implementation = async function (projectId, clearAssignee, labelMap) {
+    Task.prototype.moveToProject.implementation = async function (projectId, labelMap) {
         const moveSpec = {
-            clear_assignee: clearAssignee,
+            action: 'move',
             project_id: projectId,
             label_map: labelMap,
         };
