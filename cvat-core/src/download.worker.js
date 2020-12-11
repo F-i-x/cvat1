@@ -21,6 +21,8 @@ onmessage = (e) => {
             postMessage({
                 id: e.data.id,
                 error,
+                status: error.response.status,
+                responseData: error.response.data,
                 isSuccess: false,
             });
         });

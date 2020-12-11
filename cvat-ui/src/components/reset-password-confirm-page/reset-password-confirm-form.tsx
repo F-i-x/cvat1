@@ -22,7 +22,7 @@ type ResetPasswordConfirmFormProps = {
     fetching: boolean;
     onSubmit(resetPasswordConfirmData: ResetPasswordConfirmData): void;
 } & FormComponentProps &
-    RouteComponentProps;
+RouteComponentProps;
 
 class ResetPasswordConfirmFormComponent extends React.PureComponent<ResetPasswordConfirmFormProps> {
     private validateConfirmation = (_: any, value: string, callback: Function): void => {

@@ -14,6 +14,7 @@ import av
 import numpy as np
 from pyunpack import Archive
 from PIL import Image, ImageFile
+from cvat.apps.engine.utils import rotate_image
 
 # fixes: "OSError:broken data stream" when executing line 72 while loading images downloaded from the web
 # see: https://stackoverflow.com/questions/42462431/oserror-broken-data-stream-when-reading-image-file
@@ -134,10 +135,12 @@ class DirectoryReader(ImageListReader):
 class ArchiveReader(DirectoryReader):
     def __init__(self, source_path, step=1, start=0, stop=None):
         self._archive_source = source_path[0]
-        Archive(self._archive_source).extractall(os.path.dirname(source_path[0]))
-        os.remove(self._archive_source)
+        extract_dir = source_path[1] if len(source_path) > 1 else os.path.dirname(source_path[0])
+        Archive(self._archive_source).extractall(extract_dir)
+        if extract_dir == os.path.dirname(source_path[0]):
+            os.remove(self._archive_source)
         super().__init__(
-            source_path=[os.path.dirname(source_path[0])],
+            source_path=[extract_dir],
             step=step,
             start=start,
             stop=stop,
@@ -177,6 +180,7 @@ class PdfReader(ImageListReader):
 class ZipReader(ImageListReader):
     def __init__(self, source_path, step=1, start=0, stop=None):
         self._zip_source = zipfile.ZipFile(source_path[0], mode='r')
+        self.extract_dir = source_path[1] if len(source_path) > 1 else None
         file_list = [f for f in self._zip_source.namelist() if get_mime(f) == 'image']
         super().__init__(file_list, step, start, stop)
 
@@ -196,13 +200,15 @@ class ZipReader(ImageListReader):
 
     def get_path(self, i):
         if  self._zip_source.filename:
-            return os.path.join(os.path.dirname(self._zip_source.filename), self._source_path[i])
+            return os.path.join(os.path.dirname(self._zip_source.filename), self._source_path[i]) \
+                if not self.extract_dir else os.path.join(self.extract_dir, self._source_path[i])
         else: # necessary for mime_type definition
             return self._source_path[i]
 
     def extract(self):
-        self._zip_source.extractall(os.path.dirname(self._zip_source.filename))
-        os.remove(self._zip_source.filename)
+        self._zip_source.extractall(self.extract_dir if self.extract_dir else os.path.dirname(self._zip_source.filename))
+        if not self.extract_dir:
+            os.remove(self._zip_source.filename)
 
 class VideoReader(IMediaReader):
     def __init__(self, source_path, step=1, start=0, stop=None):
@@ -228,6 +234,16 @@ class VideoReader(IMediaReader):
                 for image in packet.decode():
                     frame_num += 1
                     if self._has_frame(frame_num - 1):
+                        if packet.stream.metadata.get('rotate'):
+                            old_image = image
+                            image = av.VideoFrame().from_ndarray(
+                                rotate_image(
+                                    image.to_ndarray(format='bgr24'),
+                                    360 - int(container.streams.video[0].metadata.get('rotate'))
+                                ),
+                                format ='bgr24'
+                            )
+                            image.pts = old_image.pts
                         yield (image, self._source_path[0], image.pts)
 
     def __iter__(self):
@@ -252,7 +268,15 @@ class VideoReader(IMediaReader):
         container = self._get_av_container()
         stream = container.streams.video[0]
         preview = next(container.decode(stream))
-        return self._get_preview(preview.to_image())
+        return self._get_preview(preview.to_image() if not stream.metadata.get('rotate') \
+            else av.VideoFrame().from_ndarray(
+                rotate_image(
+                    preview.to_ndarray(format='bgr24'),
+                    360 - int(container.streams.video[0].metadata.get('rotate'))
+                ),
+                format ='bgr24'
+            ).to_image()
+        )
 
     def get_image_size(self, i):
         image = (next(iter(self)))[0]

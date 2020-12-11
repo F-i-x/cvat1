@@ -26,11 +26,13 @@ export interface AdvancedConfiguration {
     useZipChunks: boolean;
     dataChunkSize?: number;
     useCache: boolean;
+    copyData?: boolean;
 }
 
 type Props = FormComponentProps & {
     onSubmit(values: AdvancedConfiguration): void;
     installedGit: boolean;
+    activeFileManagerTab: string;
 };
 
 function isPositiveInteger(_: any, value: any, callback: any): void {
@@ -112,6 +114,26 @@ class AdvancedConfigurationForm extends React.PureComponent<Props> {
     public resetFields(): void {
         const { form } = this.props;
         form.resetFields();
+    }
+
+    renderCopyDataChechbox(): JSX.Element {
+        const { form } = this.props;
+        return (
+            <Row>
+                <Col>
+                    <Form.Item help='If you have a low data transfer rate over the network you can copy data into CVAT to speed up work'>
+                        {form.getFieldDecorator('copyData', {
+                            initialValue: false,
+                            valuePropName: 'checked',
+                        })(
+                            <Checkbox>
+                                <Text className='cvat-text-color'>Copy data into CVAT</Text>
+                            </Checkbox>,
+                        )}
+                    </Form.Item>
+                </Col>
+            </Row>
+        );
     }
 
     private renderImageQuality(): JSX.Element {
@@ -355,7 +377,7 @@ class AdvancedConfigurationForm extends React.PureComponent<Props> {
         return (
             <Form.Item label={<span>Chunk size</span>}>
                 <Tooltip
-                    title={
+                    title={(
                         <>
                             Defines a number of frames to be packed in a chunk when send from client to server. Server
                             defines automatically if empty.
@@ -370,7 +392,7 @@ class AdvancedConfigurationForm extends React.PureComponent<Props> {
                             <br />
                             More: 1 - 4
                         </>
-                    }
+                    )}
                     mouseLeaveDelay={0}
                 >
                     {form.getFieldDecorator('dataChunkSize', {
@@ -386,10 +408,11 @@ class AdvancedConfigurationForm extends React.PureComponent<Props> {
     }
 
     public render(): JSX.Element {
-        const { installedGit } = this.props;
-
+        const { installedGit, activeFileManagerTab } = this.props;
         return (
             <Form>
+                {activeFileManagerTab === 'share' ? this.renderCopyDataChechbox() : null}
+
                 <Row>
                     <Col>{this.renderUzeZipChunks()}</Col>
                 </Row>
