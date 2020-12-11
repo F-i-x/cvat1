@@ -2,7 +2,8 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { Icon, Popconfirm, Tag } from 'antd';
+import { FilterOutlined, PlusOutlined, QuestionOutlined } from '@ant-design/icons';
+import { Popconfirm, Tag } from 'antd';
 import React, {
     ReactElement, useEffect, useRef, useState,
 } from 'react';
@@ -59,8 +60,8 @@ const AnnotationFilterPane = (): ReactElement => {
                             <Popconfirm
                                 placement='bottom'
                                 title='Are you sure you want to clear all filters?'
-                                icon={<Icon type='question-circle-o' style={{ color: 'red' }} />}
-                                onConfirm={(e) => resetFilters(e)}
+                                icon={<QuestionOutlined style={{ color: 'red' }} />}
+                                onConfirm={(e: any) => resetFilters(e)}
                                 okText='Yes'
                                 cancelText='No'
                             >
@@ -68,13 +69,13 @@ const AnnotationFilterPane = (): ReactElement => {
                             </Popconfirm>
                         </div>
                         <Tag className='add-more' onClick={() => setFilterPanelVisible(true)}>
-                            <Icon type='plus' />
+                            <PlusOutlined />
                         </Tag>
                         <div ref={filtersEndRef} />
                     </>
                 ) : (
                     <div className='no-filters'>
-                        <Icon className='no-filters-icon' type='filter' />
+                        <FilterOutlined className='no-filters-icon' />
                         <span>Annotations filters</span>
                     </div>
                 )}
