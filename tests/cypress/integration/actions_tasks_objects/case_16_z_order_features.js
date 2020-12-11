@@ -49,7 +49,7 @@ context('Actions on polygon', () => {
                     .then(($zLayer) => {
                         zLayer = Number($zLayer);
                     });
-                cy.get('i[aria-label="icon: plus-circle"]').click();
+                cy.get('span[aria-label="plus-circle"]').click();
                 cy.get('[role="slider"]').should('have.attr', 'aria-valuenow', zLayer + 1);
             });
         });
@@ -106,7 +106,7 @@ context('Actions on polygon', () => {
                     .then(($zLayer) => {
                         zLayer = Number($zLayer);
                     });
-                cy.get('i[aria-label="icon: plus-circle"]').click();
+                cy.get('span[aria-label="plus-circle"]').click();
                 cy.get('[role="slider"]').should('have.attr', 'aria-valuenow', zLayer + 2);
             });
         });

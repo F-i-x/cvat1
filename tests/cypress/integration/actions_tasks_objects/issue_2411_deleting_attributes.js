@@ -52,60 +52,60 @@ context('Wrong attribute is removed in label constructor.', () => {
             cy.get('.cvat-constructor-viewer-item')
                 .should('have.text', 'person')
                 .within(() => {
-                    cy.get('i[aria-label="icon: edit"]').click();
+                    cy.get('span[aria-label="edit"]').click();
                 });
         });
         it('Remove the average attribute "hair_color". It has been deleted.', () => {
             cy.get('.cvat-label-constructor-updater').within(() => {
-                cy.get('.ant-row-flex-space-between')
+                cy.get('.cvat-attribute-inputs-wrapper')
                     .eq(1)
                     .within(() => {
-                        cy.get('[placeholder="Name"]')
+                        cy.get('.cvat-attribute-name-input')
                             .invoke('val')
                             .then((placeholderNameValue) => {
                                 expect(placeholderNameValue).to.be.equal('hair_color');
                             });
                         cy.get('.cvat-delete-attribute-button').click();
                     });
-                cy.get('.ant-row-flex-space-between')
+                cy.get('.cvat-attribute-inputs-wrapper')
                     .eq(0)
                     .within(() => {
-                        cy.get('[placeholder="Name"]')
-                            .invoke('val')
-                            .then((placeholderNameValue) => {
-                                expect(placeholderNameValue).to.be.equal('cellphone');
-                            });
-                    });
-                cy.get('.ant-row-flex-space-between')
-                    .eq(1)
-                    .within(() => {
-                        cy.get('[placeholder="Name"]')
+                        cy.get('.cvat-attribute-name-input')
                             .invoke('val')
                             .then((placeholderNameValue) => {
                                 expect(placeholderNameValue).to.be.equal('lower_body');
+                            });
+                    });
+                cy.get('.cvat-attribute-inputs-wrapper')
+                    .eq(1)
+                    .within(() => {
+                        cy.get('.cvat-attribute-name-input')
+                            .invoke('val')
+                            .then((placeholderNameValue) => {
+                                expect(placeholderNameValue).to.be.equal('cellphone');
                             });
                     });
             });
         });
         it('Remove the latest attribute "lower_body". It has been deleted.', () => {
             cy.get('.cvat-label-constructor-updater').within(() => {
-                cy.get('.ant-row-flex-space-between')
+                cy.get('.cvat-attribute-inputs-wrapper')
                     .eq(1)
                     .within(() => {
-                        cy.get('[placeholder="Name"]')
-                            .invoke('val')
-                            .then((placeholderNameValue) => {
-                                expect(placeholderNameValue).to.be.equal('lower_body');
-                            });
-                        cy.get('.cvat-delete-attribute-button').click();
-                    });
-                cy.get('.ant-row-flex-space-between')
-                    .eq(0)
-                    .within(() => {
-                        cy.get('[placeholder="Name"]')
+                        cy.get('.cvat-attribute-name-input')
                             .invoke('val')
                             .then((placeholderNameValue) => {
                                 expect(placeholderNameValue).to.be.equal('cellphone');
+                            });
+                        cy.get('.cvat-delete-attribute-button').click();
+                    });
+                cy.get('.cvat-attribute-inputs-wrapper')
+                    .eq(0)
+                    .within(() => {
+                        cy.get('.cvat-attribute-name-input')
+                            .invoke('val')
+                            .then((placeholderNameValue) => {
+                                expect(placeholderNameValue).to.be.equal('lower_body');
                             });
                     });
             });

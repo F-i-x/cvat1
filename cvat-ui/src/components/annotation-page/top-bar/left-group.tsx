@@ -4,14 +4,16 @@
 
 import React from 'react';
 import { Col } from 'antd/lib/grid';
-import Icon from 'antd/lib/icon';
+import Icon from '@ant-design/icons';
 import Modal from 'antd/lib/modal';
 import Button from 'antd/lib/button';
 import Timeline from 'antd/lib/timeline';
 import Dropdown from 'antd/lib/dropdown';
 
 import AnnotationMenuContainer from 'containers/annotation-page/top-bar/annotation-menu';
-import { MainMenuIcon, SaveIcon, UndoIcon, RedoIcon } from 'icons';
+import {
+    MainMenuIcon, SaveIcon, UndoIcon, RedoIcon,
+} from 'icons';
 
 interface Props {
     saving: boolean;

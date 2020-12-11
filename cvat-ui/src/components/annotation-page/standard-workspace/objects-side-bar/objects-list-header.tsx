@@ -2,8 +2,15 @@
 //
 // SPDX-License-Identifier: MIT
 
+import {
+    CaretDownOutlined,
+    CaretUpFilled,
+    EyeInvisibleFilled,
+    EyeOutlined,
+    LockFilled,
+    UnlockOutlined,
+} from '@ant-design/icons';
 import { Col, Row } from 'antd/lib/grid';
-import Icon from 'antd/lib/icon';
 import Tooltip from 'antd/lib/tooltip';
 import StatesOrderingSelector from 'components/annotation-page/standard-workspace/objects-side-bar/states-ordering-selector';
 import React from 'react';
@@ -34,11 +41,7 @@ function LockAllSwitcher(props: Props): JSX.Element {
     return (
         <Col span={2}>
             <Tooltip title={`Switch lock property for all ${switchLockAllShortcut}`} mouseLeaveDelay={0}>
-                {statesLocked ? (
-                    <Icon type='lock' onClick={unlockAllStates} theme='filled' />
-                ) : (
-                    <Icon type='unlock' onClick={lockAllStates} />
-                )}
+                {statesLocked ? <LockFilled onClick={unlockAllStates} /> : <UnlockOutlined onClick={lockAllStates} />}
             </Tooltip>
         </Col>
     );
@@ -52,9 +55,9 @@ function HideAllSwitcher(props: Props): JSX.Element {
         <Col span={2}>
             <Tooltip title={`Switch hidden property for all ${switchHiddenAllShortcut}`} mouseLeaveDelay={0}>
                 {statesHidden ? (
-                    <Icon type='eye-invisible' onClick={showAllStates} />
+                    <EyeInvisibleFilled onClick={showAllStates} />
                 ) : (
-                    <Icon type='eye' onClick={hideAllStates} />
+                    <EyeOutlined onClick={hideAllStates} />
                 )}
             </Tooltip>
         </Col>
@@ -67,9 +70,9 @@ function CollapseAllSwitcher(props: Props): JSX.Element {
         <Col span={2}>
             <Tooltip title='Expand/collapse all' mouseLeaveDelay={0}>
                 {statesCollapsed ? (
-                    <Icon type='caret-down' onClick={expandAllStates} />
+                    <CaretDownOutlined onClick={expandAllStates} />
                 ) : (
-                    <Icon type='caret-up' onClick={collapseAllStates} />
+                    <CaretUpFilled onClick={collapseAllStates} />
                 )}
             </Tooltip>
         </Col>
@@ -82,12 +85,12 @@ function ObjectListHeader(props: Props): JSX.Element {
     return (
         <div className='cvat-objects-sidebar-states-header'>
             <Row>
-                <Col>
+                <Col span={24}>
                     {/* <AnnotationsFiltersInput /> */}
                     <AnnotationFilterPane />
                 </Col>
             </Row>
-            <Row type='flex' justify='space-between' align='middle'>
+            <Row justify='space-between' align='middle'>
                 {!readonly && (
                     <>
                         <LockAllSwitcher {...props} />
