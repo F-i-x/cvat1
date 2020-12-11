@@ -2,8 +2,9 @@
 //
 // SPDX-License-Identifier: MIT
 
+import { QuestionCircleOutlined } from '@ant-design/icons';
 import {
-    AutoComplete, Button, Cascader, Icon, Modal, Radio,
+    AutoComplete, Button, Cascader, Modal, Radio,
 } from 'antd';
 import { RadioChangeEvent } from 'antd/lib/radio';
 import { SelectValue } from 'antd/lib/select';
@@ -351,7 +352,7 @@ const AnnotationFilterPanel = ({
             mask={false}
             width={300}
         >
-            <Icon className='ant-modal-help' onClick={() => alert('Help')} type='question-circle' />
+            <QuestionCircleOutlined className='ant-modal-help' onClick={() => alert('Help')} />
             <h3>Add new filter</h3>
             <div className='filter-option-wrapper'>
                 <div className='filter-option'>
@@ -361,7 +362,8 @@ const AnnotationFilterPanel = ({
                             <Cascader
                                 options={concatenatorOptions}
                                 // eslint-disable-next-line max-len
-                                onChange={(value: string[]) => dispatch({ type: ActionType.concatenator, payload: value[0] })}
+                                onChange={(value: any) =>
+                                    dispatch({ type: ActionType.concatenator, payload: value[0] })}
                                 value={[state.concatenator]}
                                 popupClassName={`cascader-popup options-${concatenatorOptions.length} concatenator`}
                                 disabled={isFirst}
@@ -379,7 +381,7 @@ const AnnotationFilterPanel = ({
                             <Cascader
                                 options={filterByOptions}
                                 // eslint-disable-next-line max-len
-                                onChange={(value: string[]) => dispatch({ type: ActionType.filterBy, payload: value[0] })}
+                                onChange={(value: any) => dispatch({ type: ActionType.filterBy, payload: value[0] })}
                                 value={[state.filterBy]}
                                 popupClassName={`cascader-popup options-${filterByOptions.length}`}
                                 allowClear={false}
@@ -399,7 +401,8 @@ const AnnotationFilterPanel = ({
                                 <Cascader
                                     options={getOperatorOptions()}
                                     // eslint-disable-next-line max-len
-                                    onChange={(value: string[]) => dispatch({ type: ActionType.operator, payload: value[0] })}
+                                    onChange={(value: any) =>
+                                        dispatch({ type: ActionType.operator, payload: value[0] })}
                                     value={[state.operator]}
                                     popupClassName={`cascader-popup options-${getOperatorOptions()?.length} operator`}
                                     allowClear={false}
@@ -412,7 +415,8 @@ const AnnotationFilterPanel = ({
                                     <Cascader
                                         options={getValueOptions()}
                                         // eslint-disable-next-line max-len
-                                        onChange={(value: string[]) => dispatch({ type: ActionType.value, payload: value[0] })}
+                                        onChange={(value: any) =>
+                                            dispatch({ type: ActionType.value, payload: value[0] })}
                                         value={[state.value]}
                                         popupClassName={`cascader-popup options-${getValueOptions()?.length} value`}
                                         allowClear={false}
@@ -427,9 +431,11 @@ const AnnotationFilterPanel = ({
                                         className='numeric-autocomplete'
                                         dataSource={getMemorizedFilters()[state.filterBy] ?? []}
                                         // eslint-disable-next-line max-len
-                                        filterOption={(inputValue, option) => `${option.props.children}`.indexOf(inputValue) >= 0}
+                                        filterOption={(inputValue, option) =>
+                                            `${option?.props.children}`.indexOf(inputValue) >= 0}
                                         // eslint-disable-next-line max-len
-                                        onChange={(value: SelectValue) => dispatch({ type: ActionType.value, payload: value })}
+                                        onChange={(value: SelectValue) =>
+                                            dispatch({ type: ActionType.value, payload: value })}
                                         placeholder=''
                                         size='small'
                                     />
@@ -448,7 +454,8 @@ const AnnotationFilterPanel = ({
                             <div className='filter-option-value boolean'>
                                 <Radio.Group
                                     // eslint-disable-next-line max-len
-                                    onChange={(e: RadioChangeEvent) => dispatch({ type: ActionType.value, payload: e.target.value })}
+                                    onChange={(e: RadioChangeEvent) =>
+                                        dispatch({ type: ActionType.value, payload: e.target.value })}
                                     value={state.value}
                                 >
                                     {filterByBooleanOptions.map((option) => (
@@ -469,7 +476,7 @@ const AnnotationFilterPanel = ({
                                 <Cascader
                                     options={getValueOptions()}
                                     // eslint-disable-next-line max-len
-                                    onChange={(value: string[]) => dispatch({ type: ActionType.value, payload: value[0] })}
+                                    onChange={(value: any) => dispatch({ type: ActionType.value, payload: value[0] })}
                                     value={[state.value]}
                                     // eslint-disable-next-line max-len
                                     popupClassName={`cascader-popup options-${
@@ -495,7 +502,8 @@ const AnnotationFilterPanel = ({
                                 <Cascader
                                     options={getAttributeOptions(state.value)}
                                     // eslint-disable-next-line max-len
-                                    onChange={(value: string[]) => dispatch({ type: ActionType.attribute, payload: value[0] })}
+                                    onChange={(value: any) =>
+                                        dispatch({ type: ActionType.attribute, payload: value[0] })}
                                     value={[state.attribute]}
                                     // eslint-disable-next-line max-len
                                     popupClassName={`cascader-popup options-${
@@ -518,7 +526,8 @@ const AnnotationFilterPanel = ({
                                     <Cascader
                                         options={getAttributeOperatorOptions()}
                                         // eslint-disable-next-line max-len
-                                        onChange={(value: string[]) => dispatch({ type: ActionType.attributeOperator, payload: value[0] })}
+                                        onChange={(value: any) =>
+                                            dispatch({ type: ActionType.attributeOperator, payload: value[0] })}
                                         value={[state.attributeOperator]}
                                         popupClassName={`cascader-popup options-${
                                             getAttributeOperatorOptions()?.length
@@ -532,7 +541,8 @@ const AnnotationFilterPanel = ({
                                     <Cascader
                                         options={getAttributeValueOptions()}
                                         // eslint-disable-next-line max-len
-                                        onChange={(value: string[]) => dispatch({ type: ActionType.attributeValue, payload: value[0] })}
+                                        onChange={(value: any) =>
+                                            dispatch({ type: ActionType.attributeValue, payload: value[0] })}
                                         value={[state.attributeValue]}
                                         popupClassName={`cascader-popup options-${
                                             getAttributeValueOptions()?.length
@@ -552,7 +562,8 @@ const AnnotationFilterPanel = ({
                                         <Cascader
                                             options={getValueOptions()}
                                             // eslint-disable-next-line max-len
-                                            onChange={(value: string[]) => dispatch({ type: ActionType.anotherAttributeLabel, payload: value[0] })}
+                                            onChange={(value: any) =>
+                                                dispatch({ type: ActionType.anotherAttributeLabel, payload: value[0] })}
                                             value={[state.anotherAttributeLabel]}
                                             popupClassName={`cascader-popup options-${
                                                 getValueOptions()?.length
@@ -577,7 +588,8 @@ const AnnotationFilterPanel = ({
                                         <Cascader
                                             options={getAttributeOptions(state.anotherAttributeLabel)}
                                             // eslint-disable-next-line max-len
-                                            onChange={(value: string[]) => dispatch({ type: ActionType.anotherAttributeValue, payload: value[0] })}
+                                            onChange={(value: any) =>
+                                                dispatch({ type: ActionType.anotherAttributeValue, payload: value[0] })}
                                             value={[state.anotherAttributeValue]}
                                             // eslint-disable-next-line max-len
                                             popupClassName={`cascader-popup options-${

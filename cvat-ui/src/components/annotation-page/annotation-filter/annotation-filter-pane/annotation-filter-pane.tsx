@@ -54,7 +54,14 @@ const AnnotationFilterPane = (): ReactElement => {
                 {filters?.length ? (
                     <>
                         {filters.map((item: any) => (
-                            <AnnotationFilterItem key={item.id} item={item} />
+                            <AnnotationFilterItem
+                                key={item.id}
+                                item={item}
+                                onEdit={(filterItem) => {
+                                    setFilterPanelVisible(true);
+                                    console.log(filterItem);
+                                }}
+                            />
                         ))}
                         <div className='pop-confirm-wrapper' onClick={(e) => e.stopPropagation()}>
                             <Popconfirm

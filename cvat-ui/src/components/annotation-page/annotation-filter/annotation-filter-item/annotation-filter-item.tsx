@@ -16,7 +16,7 @@ enum BooleanFilterByOptions {
     occluded,
     empty_frame,
 }
-function AnnotationFilterItem({ item }: Props): ReactElement {
+function AnnotationFilterItem({ item, onEdit }: Props): ReactElement {
     // TODO: DRY
     const isBooleanFilterBy = (): boolean => Object.values(BooleanFilterByOptions).includes(item.filterBy);
 
@@ -25,10 +25,13 @@ function AnnotationFilterItem({ item }: Props): ReactElement {
             {item.concatenator && ` ${item.concatenator} `}
             <Tag
                 className='annotation-filters-item'
-                onClick={(e: React.MouseEvent<HTMLSpanElement, MouseEvent>) => e.stopPropagation()}
+                onClick={(e: React.MouseEvent<HTMLSpanElement, MouseEvent>) => {
+                    e.stopPropagation();
+                    onEdit(item);
+                }}
                 onClose={(e: React.MouseEvent<HTMLSpanElement, MouseEvent>) => {
                     e.preventDefault();
-                    alert('Close');
+                    alert('remove filter item');
                 }}
                 closable
             >
@@ -48,6 +51,7 @@ function AnnotationFilterItem({ item }: Props): ReactElement {
 
 AnnotationFilterItem.propTypes = {
     item: PropTypes.objectOf(PropTypes.any),
+    onEdit: PropTypes.func.isRequired,
 };
 
 export default AnnotationFilterItem;
