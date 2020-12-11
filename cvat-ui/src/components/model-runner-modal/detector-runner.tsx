@@ -14,7 +14,6 @@ import Tooltip from 'antd/lib/tooltip';
 import Text from 'antd/lib/typography/Text';
 import consts from 'consts';
 // eslint-disable-next-line import/no-extraneous-dependencies
-// eslint-disable-next-line import/no-unresolved
 import { OptionData, OptionGroupData } from 'rc-select/lib/interface';
 import React, { useState } from 'react';
 import { Model, StringObject } from 'reducers/interfaces';

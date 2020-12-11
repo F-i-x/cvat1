@@ -4,7 +4,6 @@
 
 import Select, { SelectProps } from 'antd/lib/select';
 // eslint-disable-next-line import/no-extraneous-dependencies
-// eslint-disable-next-line import/no-unresolved
 import { OptionData, OptionGroupData } from 'rc-select/lib/interface';
 import React from 'react';
 
