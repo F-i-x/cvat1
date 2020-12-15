@@ -13,6 +13,7 @@ import AnnotationFilterPanel from '../annotation-filter-panel/annotation-filter-
 import './annotation-filter-pane.scss';
 
 const AnnotationFilterPane = (): ReactElement => {
+    const [editItem, setEditItem] = useState({} as any);
     const [filters, setFilters] = useState([] as any);
     const [filterPanelVisible, setFilterPanelVisible] = useState(true);
 
@@ -59,7 +60,7 @@ const AnnotationFilterPane = (): ReactElement => {
                                 item={item}
                                 onEdit={(filterItem) => {
                                     setFilterPanelVisible(true);
-                                    console.log(filterItem);
+                                    setEditItem(filterItem);
                                 }}
                             />
                         ))}
@@ -92,6 +93,7 @@ const AnnotationFilterPane = (): ReactElement => {
                 isVisible={filterPanelVisible}
                 onClose={() => setFilterPanelVisible(false)}
                 onAddNew={(filter: any) => addNew(filter)}
+                editItem={editItem}
             />
         </>
     );

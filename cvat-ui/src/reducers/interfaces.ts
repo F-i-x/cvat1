@@ -2,9 +2,9 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { ExtendedKeyMapOptions } from 'react-hotkeys';
 import { Canvas, RectDrawingMethod } from 'cvat-canvas-wrapper';
 import { MutableRefObject } from 'react';
+import { ExtendedKeyMapOptions } from 'react-hotkeys';
 
 export type StringObject = {
     [index: string]: string;
@@ -178,6 +178,11 @@ export enum TaskStatus {
     ANNOTATION = 'annotation',
     REVIEW = 'validation',
     COMPLETED = 'completed',
+}
+
+export enum TaskDimension {
+    D2 = '2D',
+    D3 = '3D',
 }
 
 export enum RQStatus {

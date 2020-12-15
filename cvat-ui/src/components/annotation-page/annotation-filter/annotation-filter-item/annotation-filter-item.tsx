@@ -9,6 +9,7 @@ import './annotation-filter-item.scss';
 
 interface Props {
     item: any;
+    onEdit: any;
 }
 
 // TODO: DRY
@@ -35,12 +36,12 @@ function AnnotationFilterItem({ item, onEdit }: Props): ReactElement {
                 }}
                 closable
             >
-                {isBooleanFilterBy() && `${item.filterBy} is ${item.value}`}
-                {!isBooleanFilterBy() && !item.attribute && `${item.filterBy}${item.operator}${item.value}`}
+                {isBooleanFilterBy() && `${item.filterBy} is "${item.value}"`}
+                {!isBooleanFilterBy() && !item.attribute && `${item.filterBy}${item.operator}"${item.value}"`}
 
                 {item.attribute &&
                     !item.anotherAttributeLabel &&
-                    `attr["${item.attribute}"]${item.attributeOperator}${item.attributeValue}`}
+                    `attr["${item.attribute}"]${item.attributeOperator}"${item.attributeValue}"`}
 
                 {item.anotherAttributeLabel &&
                     `attr["${item.attribute}"]${item.attributeOperator}attr["${item.anotherAttributeValue}"]`}

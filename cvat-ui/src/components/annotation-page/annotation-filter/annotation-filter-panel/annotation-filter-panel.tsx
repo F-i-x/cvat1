@@ -9,7 +9,9 @@ import {
 import { RadioChangeEvent } from 'antd/lib/radio';
 import { SelectValue } from 'antd/lib/select';
 import PropTypes from 'prop-types';
-import React, { ReactElement, useEffect, useReducer } from 'react';
+import React, {
+    ReactElement, useEffect, useReducer, useState,
+} from 'react';
 import { useSelector } from 'react-redux';
 import { AnnotationState, CombinedState } from 'reducers/interfaces';
 import './annotation-filter-panel.scss';
@@ -19,6 +21,7 @@ interface Props {
     isVisible: boolean;
     onClose: Function;
     onAddNew: Function;
+    editItem: any;
 }
 
 interface State {
@@ -61,6 +64,7 @@ enum ActionType {
     attributeValue,
     anotherAttributeLabel,
     anotherAttributeValue,
+    fillState,
     partialReset,
     reset,
 }
@@ -189,8 +193,10 @@ const reducer = (state: State, action: { type: ActionType; payload?: any }): Sta
             return { ...state, anotherAttributeLabel: action.payload };
         case ActionType.anotherAttributeValue:
             return { ...state, anotherAttributeValue: action.payload };
+        case ActionType.fillState:
+            return { ...action.payload };
         case ActionType.partialReset:
-            if (!action.payload) return state;
+            if (!action.payload || action.payload.id) return state;
             return {
                 ...state,
                 operator: action.payload < StateLevels.operator ? '' : state.operator,
@@ -217,9 +223,10 @@ const reducer = (state: State, action: { type: ActionType; payload?: any }): Sta
 };
 
 const AnnotationFilterPanel = ({
-    isFirst, isVisible, onClose, onAddNew,
+    isFirst, isVisible, onClose, onAddNew, editItem,
 }: Props): ReactElement => {
     const [state, dispatch] = useReducer(reducer, {} as State);
+    const [editModeInitiated, setEditModeInitiated] = useState(false);
     const annotation: AnnotationState = useSelector((globalState: CombinedState) => globalState.annotation);
 
     const isAttributeFilterBy = (): boolean => FilterByValues.attribute === state.filterBy;
@@ -239,38 +246,52 @@ const AnnotationFilterPanel = ({
     };
 
     useEffect(() => {
+        if (editModeInitiated) return;
         dispatch({ type: ActionType.partialReset, payload: StateLevels.concatenator });
     }, [state.concatenator]);
     useEffect(() => {
+        if (editModeInitiated) return;
         dispatch({ type: ActionType.partialReset, payload: StateLevels.filterBy });
     }, [state.filterBy]);
     useEffect(() => {
+        if (editModeInitiated) return;
         dispatch({ type: ActionType.partialReset, payload: StateLevels.operator });
     }, [state.operator]);
     useEffect(() => {
+        if (editModeInitiated) return;
         dispatch({ type: ActionType.partialReset, payload: StateLevels.value });
     }, [state.value]);
     useEffect(() => {
+        if (editModeInitiated) return;
         dispatch({ type: ActionType.partialReset, payload: StateLevels.attribute });
     }, [state.attribute]);
     useEffect(() => {
+        if (editModeInitiated) return;
         dispatch({ type: ActionType.partialReset, payload: StateLevels.attributeOperator });
     }, [state.attributeOperator]);
     useEffect(() => {
+        if (editModeInitiated) return;
         dispatch({ type: ActionType.partialReset, payload: StateLevels.attributeValue });
     }, [state.attributeValue]);
     useEffect(() => {
+        if (editModeInitiated) return;
         dispatch({ type: ActionType.partialReset, payload: StateLevels.anotherAttributeLabel });
     }, [state.anotherAttributeLabel]);
     useEffect(() => {
+        if (editModeInitiated) return;
         dispatch({ type: ActionType.partialReset, payload: StateLevels.anotherAttributeValue });
     }, [state.anotherAttributeValue]);
 
     useEffect(() => {
         setTimeout(() => {
             dispatch({ type: ActionType.reset });
-            if (isFirst) return;
-            dispatch({ type: ActionType.concatenator, payload: ConcatenatorOptionsValues.and });
+            if (editItem) {
+                setEditModeInitiated(true);
+                dispatch({ type: ActionType.fillState, payload: editItem });
+                setEditModeInitiated(false);
+                return;
+            }
+            if (!isFirst) dispatch({ type: ActionType.concatenator, payload: ConcatenatorOptionsValues.and });
         }, 100);
     }, [isVisible]);
 
@@ -361,7 +382,6 @@ const AnnotationFilterPanel = ({
                         <div className='filter-option-value'>
                             <Cascader
                                 options={concatenatorOptions}
-                                // eslint-disable-next-line max-len
                                 onChange={(value: any) =>
                                     dispatch({ type: ActionType.concatenator, payload: value[0] })}
                                 value={[state.concatenator]}
@@ -380,7 +400,6 @@ const AnnotationFilterPanel = ({
                         <div className='filter-option-value'>
                             <Cascader
                                 options={filterByOptions}
-                                // eslint-disable-next-line max-len
                                 onChange={(value: any) => dispatch({ type: ActionType.filterBy, payload: value[0] })}
                                 value={[state.filterBy]}
                                 popupClassName={`cascader-popup options-${filterByOptions.length}`}
@@ -400,7 +419,6 @@ const AnnotationFilterPanel = ({
                             <div className='filter-option-value operator'>
                                 <Cascader
                                     options={getOperatorOptions()}
-                                    // eslint-disable-next-line max-len
                                     onChange={(value: any) =>
                                         dispatch({ type: ActionType.operator, payload: value[0] })}
                                     value={[state.operator]}
@@ -414,7 +432,6 @@ const AnnotationFilterPanel = ({
                                 <div className='filter-option-value'>
                                     <Cascader
                                         options={getValueOptions()}
-                                        // eslint-disable-next-line max-len
                                         onChange={(value: any) =>
                                             dispatch({ type: ActionType.value, payload: value[0] })}
                                         value={[state.value]}
@@ -430,10 +447,8 @@ const AnnotationFilterPanel = ({
                                     <AutoComplete
                                         className='numeric-autocomplete'
                                         dataSource={getMemorizedFilters()[state.filterBy] ?? []}
-                                        // eslint-disable-next-line max-len
                                         filterOption={(inputValue, option) =>
                                             `${option?.props.children}`.indexOf(inputValue) >= 0}
-                                        // eslint-disable-next-line max-len
                                         onChange={(value: SelectValue) =>
                                             dispatch({ type: ActionType.value, payload: value })}
                                         placeholder=''
@@ -453,7 +468,6 @@ const AnnotationFilterPanel = ({
                         <div className='filter-option-value-wrapper'>
                             <div className='filter-option-value boolean'>
                                 <Radio.Group
-                                    // eslint-disable-next-line max-len
                                     onChange={(e: RadioChangeEvent) =>
                                         dispatch({ type: ActionType.value, payload: e.target.value })}
                                     value={state.value}
@@ -475,10 +489,8 @@ const AnnotationFilterPanel = ({
                             <div className='filter-option-value'>
                                 <Cascader
                                     options={getValueOptions()}
-                                    // eslint-disable-next-line max-len
                                     onChange={(value: any) => dispatch({ type: ActionType.value, payload: value[0] })}
                                     value={[state.value]}
-                                    // eslint-disable-next-line max-len
                                     popupClassName={`cascader-popup options-${
                                         getValueOptions()?.length
                                     } value-label-postfix`}
@@ -501,11 +513,9 @@ const AnnotationFilterPanel = ({
                             <div className='filter-option-value'>
                                 <Cascader
                                     options={getAttributeOptions(state.value)}
-                                    // eslint-disable-next-line max-len
                                     onChange={(value: any) =>
                                         dispatch({ type: ActionType.attribute, payload: value[0] })}
                                     value={[state.attribute]}
-                                    // eslint-disable-next-line max-len
                                     popupClassName={`cascader-popup options-${
                                         getAttributeOptions(state.value)?.length
                                     }`}
@@ -525,7 +535,6 @@ const AnnotationFilterPanel = ({
                                 <div className='filter-option-value operator'>
                                     <Cascader
                                         options={getAttributeOperatorOptions()}
-                                        // eslint-disable-next-line max-len
                                         onChange={(value: any) =>
                                             dispatch({ type: ActionType.attributeOperator, payload: value[0] })}
                                         value={[state.attributeOperator]}
@@ -540,7 +549,6 @@ const AnnotationFilterPanel = ({
                                 <div className='filter-option-value'>
                                     <Cascader
                                         options={getAttributeValueOptions()}
-                                        // eslint-disable-next-line max-len
                                         onChange={(value: any) =>
                                             dispatch({ type: ActionType.attributeValue, payload: value[0] })}
                                         value={[state.attributeValue]}
@@ -561,7 +569,6 @@ const AnnotationFilterPanel = ({
                                     <div className='filter-option-value'>
                                         <Cascader
                                             options={getValueOptions()}
-                                            // eslint-disable-next-line max-len
                                             onChange={(value: any) =>
                                                 dispatch({ type: ActionType.anotherAttributeLabel, payload: value[0] })}
                                             value={[state.anotherAttributeLabel]}
@@ -587,11 +594,9 @@ const AnnotationFilterPanel = ({
                                     <div className='filter-option-value'>
                                         <Cascader
                                             options={getAttributeOptions(state.anotherAttributeLabel)}
-                                            // eslint-disable-next-line max-len
                                             onChange={(value: any) =>
                                                 dispatch({ type: ActionType.anotherAttributeValue, payload: value[0] })}
                                             value={[state.anotherAttributeValue]}
-                                            // eslint-disable-next-line max-len
                                             popupClassName={`cascader-popup options-${
                                                 getAttributeOptions(state.anotherAttributeLabel)?.length
                                             }`}
@@ -621,6 +626,7 @@ AnnotationFilterPanel.propTypes = {
     isVisible: PropTypes.bool.isRequired,
     onClose: PropTypes.func.isRequired,
     onAddNew: PropTypes.func.isRequired,
+    editItem: PropTypes.objectOf(PropTypes.any),
 };
 
 export default AnnotationFilterPanel;
