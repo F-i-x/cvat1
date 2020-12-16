@@ -25,6 +25,7 @@ interface Props {
 }
 
 interface State {
+    id: string;
     concatenator: string;
     filterBy: string;
     operator: string;
@@ -34,6 +35,8 @@ interface State {
     attributeValue: string;
     anotherAttributeLabel: string;
     anotherAttributeValue: string;
+    left: string[];
+    right: string[];
 }
 interface MemorizedFilters {
     width?: string[];

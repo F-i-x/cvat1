@@ -17,7 +17,7 @@
     user-select: none;
     overflow: auto;
 
-    & > * {
+    & > *:not(.group) {
         margin: $grid-unit-size/2;
     }
 

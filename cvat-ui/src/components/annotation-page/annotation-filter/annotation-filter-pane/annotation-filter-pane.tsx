@@ -41,6 +41,8 @@ const AnnotationFilterPane = (): ReactElement => {
     const addNew = (filter: any): void => {
         const newFilter = { ...filter };
         newFilter.id = uuidv4();
+        newFilter.left = [];
+        newFilter.right = [];
         setFilters([...filters, newFilter]);
     };
 
