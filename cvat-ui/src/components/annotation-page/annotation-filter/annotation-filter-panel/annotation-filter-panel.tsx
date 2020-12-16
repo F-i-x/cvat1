@@ -286,6 +286,8 @@ const AnnotationFilterPanel = ({
     }, [state.anotherAttributeValue]);
 
     useEffect(() => {
+        console.log(editItem);
+
         setTimeout(() => {
             dispatch({ type: ActionType.reset });
             if (editItem) {
@@ -377,10 +379,15 @@ const AnnotationFilterPanel = ({
             width={300}
         >
             <QuestionCircleOutlined className='ant-modal-help' onClick={() => alert('Help')} />
-            <h3>Add new filter</h3>
+            {!editItem && <h3>Add new filter</h3>}
+            {editItem && <h3>Update filter</h3>}
             <div className='filter-option-wrapper'>
                 <div className='filter-option'>
-                    <span className='filter-option-label concatenator'>Add as new with operator</span>
+                    <span className='filter-option-label concatenator'>
+                        {!editItem && 'Add as new '}
+                        {editItem && 'Update '}
+                        with operator
+                    </span>
                     <div className='filter-option-value-wrapper'>
                         <div className='filter-option-value'>
                             <Cascader
@@ -615,10 +622,12 @@ const AnnotationFilterPanel = ({
                 )}
             </div>
             <div className='filter-action-wrapper'>
-                <Button onClick={() => alert('Combine')}>Combine</Button>
-                <Button type='primary' onClick={() => onAddNew(state)}>
-                    Add new
-                </Button>
+                {!editItem && (
+                    <Button type='primary' onClick={() => onAddNew(state)}>
+                        Add
+                    </Button>
+                )}
+                {editItem && <Button type='primary'>Update</Button>}
             </div>
         </Modal>
     );
