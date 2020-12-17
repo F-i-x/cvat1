@@ -42,12 +42,25 @@ const AnnotationFilterPane = (): ReactElement => {
         if (!filterPanelVisible) setEditItem(undefined);
     }, [filterPanelVisible]);
 
-    const addNew = (filter: any): void => {
+    const addFilter = (filter: any): void => {
         const newFilter = { ...filter };
         newFilter.id = uuidv4();
         newFilter.left = [];
         newFilter.right = [];
         setFilters([...filters, newFilter]);
+    };
+
+    const editFilter = (filter: any): void => {
+        let filterToEditIndex = -1;
+        filters.find((filterItem: any, filterItemIndex: number): boolean => {
+            filterToEditIndex = filterItemIndex;
+            return filterItem.id === filter.id;
+        });
+        if (filterToEditIndex >= 0) {
+            filters[filterToEditIndex] = { ...filter, id: uuidv4() };
+            setFilters(filters);
+        }
+        setFilterPanelVisible(false);
     };
 
     return (
@@ -102,11 +115,12 @@ const AnnotationFilterPane = (): ReactElement => {
                 )}
             </div>
             <AnnotationFilterPanel
+                editItem={editItem}
                 isFirst={!filters.length || (editItem && !editItem.concatenator?.length)}
                 isVisible={filterPanelVisible}
                 onClose={() => setFilterPanelVisible(false)}
-                onAddNew={(filter: any) => addNew(filter)}
-                editItem={editItem}
+                onAdd={(filter: any) => addFilter(filter)}
+                onEdit={(filter: any) => editFilter(filter)}
             />
         </>
     );

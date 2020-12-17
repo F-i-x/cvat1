@@ -17,11 +17,12 @@ import { AnnotationState, CombinedState } from 'reducers/interfaces';
 import './annotation-filter-panel.scss';
 
 interface Props {
+    editItem: any;
     isFirst?: boolean;
     isVisible: boolean;
     onClose: Function;
-    onAddNew: Function;
-    editItem: any;
+    onAdd: Function;
+    onEdit: Function;
 }
 
 interface State {
@@ -226,7 +227,7 @@ const reducer = (state: State, action: { type: ActionType; payload?: any }): Sta
 };
 
 const AnnotationFilterPanel = ({
-    isFirst, isVisible, onClose, onAddNew, editItem,
+    isFirst, isVisible, onClose, onAdd, onEdit, editItem,
 }: Props): ReactElement => {
     const [state, dispatch] = useReducer(reducer, {} as State);
     const [editModeInitiated, setEditModeInitiated] = useState(false);
@@ -302,7 +303,7 @@ const AnnotationFilterPanel = ({
         if (isNumericFilterBy()) setMemorizedFilters();
         dispatch({ type: ActionType.reset });
         if (!isFirst) dispatch({ type: ActionType.concatenator, payload: ConcatenatorOptionsValues.and });
-    }, [onAddNew]);
+    }, [onAdd]);
 
     const getOperatorOptions = (): Record<string, any>[] => {
         if (!Object.values(NumericFilterByOptions).includes(state.filterBy)) {
@@ -620,7 +621,7 @@ const AnnotationFilterPanel = ({
                 )}
             </div>
             <div className='filter-action-wrapper'>
-                <Button type='primary' onClick={() => (editItem ? onAddNew(state) : onAddNew(state))}>
+                <Button type='primary' onClick={() => (editItem ? onEdit(state) : onAdd(state))}>
                     {editItem ? 'Update' : 'Add'}
                 </Button>
             </div>
@@ -629,11 +630,12 @@ const AnnotationFilterPanel = ({
 };
 
 AnnotationFilterPanel.propTypes = {
+    editItem: PropTypes.objectOf(PropTypes.any),
     isFirst: PropTypes.bool,
     isVisible: PropTypes.bool.isRequired,
     onClose: PropTypes.func.isRequired,
-    onAddNew: PropTypes.func.isRequired,
-    editItem: PropTypes.objectOf(PropTypes.any),
+    onAdd: PropTypes.func.isRequired,
+    onEdit: PropTypes.func.isRequired,
 };
 
 export default AnnotationFilterPanel;
