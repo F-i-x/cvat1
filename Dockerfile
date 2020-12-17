@@ -34,10 +34,11 @@ RUN curl -sL https://github.com/cisco/openh264/archive/v${OPENH264_VERSION}.tar.
     make -j5 && make install PREFIX=${PREFIX} && make clean
 
 WORKDIR /tmp/ffmpeg
-RUN curl -sLO https://ffmpeg.org/releases/ffmpeg-${FFMPEG_VERSION}.tar.bz2 && \
-    tar -jx --strip-components=1 -f ffmpeg-${FFMPEG_VERSION}.tar.bz2 && \
+RUN curl -sL https://ffmpeg.org/releases/ffmpeg-${FFMPEG_VERSION}.tar.bz2 --output - | \
+    tar -jx --strip-components=1 && \
     ./configure --disable-nonfree --disable-gpl --enable-libopenh264 --enable-shared --disable-static --prefix="${PREFIX}" && \
-    make -j5 && make install && make distclean
+    make -j5 && make install && make clean && \
+    tar -zcf "/tmp/ffmpeg-$FFMPEG_VERSION.tar.gz" . && mv "/tmp/ffmpeg-$FFMPEG_VERSION.tar.gz" .
 
 # Install requirements
 RUN python3 -m venv /opt/venv
@@ -128,7 +129,7 @@ RUN if [ "$INSTALL_SOURCES" = "yes" ]; then \
             done &&                                           \
         rm -rf /var/lib/apt/lists/*;                          \
     fi
-COPY --from=build-image /tmp/openh264/openh264*.tar.gz /tmp/ffmpeg/ffmpeg*.tar.bz2 ${HOME}/sources/
+COPY --from=build-image /tmp/openh264/openh264*.tar.gz /tmp/ffmpeg/ffmpeg*.tar.gz ${HOME}/sources/
 
 # Copy python virtual enviroment and FFmpeg binaries from build-image
 COPY --from=build-image /opt/venv /opt/venv
