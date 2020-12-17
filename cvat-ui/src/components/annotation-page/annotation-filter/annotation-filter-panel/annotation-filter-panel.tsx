@@ -620,12 +620,9 @@ const AnnotationFilterPanel = ({
                 )}
             </div>
             <div className='filter-action-wrapper'>
-                {!editItem && (
-                    <Button type='primary' onClick={() => onAddNew(state)}>
-                        Add
-                    </Button>
-                )}
-                {editItem && <Button type='primary'>Update</Button>}
+                <Button type='primary' onClick={() => (editItem ? onAddNew(state) : onAddNew(state))}>
+                    {editItem ? 'Update' : 'Add'}
+                </Button>
             </div>
         </Modal>
     );
