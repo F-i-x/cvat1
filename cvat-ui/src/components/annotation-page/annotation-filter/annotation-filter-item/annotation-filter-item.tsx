@@ -7,11 +7,6 @@ import PropTypes from 'prop-types';
 import React, { ReactElement, useReducer } from 'react';
 import './annotation-filter-item.scss';
 
-interface Props {
-    item: any;
-    onEdit: any;
-}
-
 // TODO: DRY
 interface State {
     id: string;
@@ -26,6 +21,12 @@ interface State {
     anotherAttributeValue: string;
     left: string[];
     right: string[];
+}
+
+interface Props {
+    item: State;
+    onEdit: Function;
+    onDelete: Function;
 }
 
 // TODO: DRY
@@ -57,7 +58,7 @@ const reducer = (state: State, action: { type: ActionType; payload?: any }): Sta
             return state;
     }
 };
-function AnnotationFilterItem({ item, onEdit }: Props): ReactElement {
+function AnnotationFilterItem({ item, onEdit, onDelete }: Props): ReactElement {
     const [state, dispatch] = useReducer(reducer, item);
 
     // TODO: DRY
@@ -70,36 +71,26 @@ function AnnotationFilterItem({ item, onEdit }: Props): ReactElement {
             <Tag
                 className='annotation-filters-item'
                 onClick={(e: React.MouseEvent<HTMLSpanElement, MouseEvent>) => {
-                    if (e.shiftKey || e.altKey) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                    }
                     if (e.shiftKey) {
                         dispatch({ type: ActionType.addLeft });
-                        return;
-                    }
-                    if (e.altKey) {
+                    } else if (e.altKey) {
                         dispatch({ type: ActionType.removeLeft });
-                        return;
+                    } else {
+                        onEdit(state);
                     }
-                    onEdit(item);
                 }}
                 onContextMenu={(e: React.MouseEvent<HTMLSpanElement, MouseEvent>) => {
-                    if (e.shiftKey || e.altKey) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                    }
+                    e.preventDefault();
+                    if (e.shiftKey || e.altKey) e.stopPropagation();
                     if (e.shiftKey) {
                         dispatch({ type: ActionType.addRight });
-                        return;
-                    }
-                    if (e.altKey) {
+                    } else if (e.altKey) {
                         dispatch({ type: ActionType.removeRight });
                     }
                 }}
                 onClose={(e: React.MouseEvent<HTMLSpanElement, MouseEvent>) => {
                     e.preventDefault();
-                    alert('remove filter item');
+                    onDelete(state);
                 }}
                 closable
             >
@@ -121,6 +112,7 @@ function AnnotationFilterItem({ item, onEdit }: Props): ReactElement {
 AnnotationFilterItem.propTypes = {
     item: PropTypes.objectOf(PropTypes.any),
     onEdit: PropTypes.func.isRequired,
+    onDelete: PropTypes.func.isRequired,
 };
 
 export default AnnotationFilterItem;

@@ -60,9 +60,16 @@ const AnnotationFilterPane = (): ReactElement => {
                             <AnnotationFilterItem
                                 key={item.id}
                                 item={item}
-                                onEdit={(filterItem) => {
+                                onEdit={(filterItem: any) => {
                                     setFilterPanelVisible(true);
                                     setEditItem(filterItem);
+                                }}
+                                onDelete={(filterToDelete: any) => {
+                                    const newFilters = filters.filter(
+                                        (filterItem: any) => filterItem.id !== filterToDelete.id,
+                                    );
+                                    if (newFilters.length) newFilters[0].concatenator = null;
+                                    setFilters(newFilters);
                                 }}
                             />
                         ))}

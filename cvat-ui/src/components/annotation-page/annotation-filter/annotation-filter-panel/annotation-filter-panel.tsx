@@ -286,8 +286,6 @@ const AnnotationFilterPanel = ({
     }, [state.anotherAttributeValue]);
 
     useEffect(() => {
-        console.log(editItem);
-
         setTimeout(() => {
             dispatch({ type: ActionType.reset });
             if (editItem) {
