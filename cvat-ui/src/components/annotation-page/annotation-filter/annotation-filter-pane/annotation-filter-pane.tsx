@@ -85,7 +85,10 @@ const AnnotationFilterPane = (): ReactElement => {
                                     const newFilters = filters.filter(
                                         (filterItem: any) => filterItem.id !== filterToDelete.id,
                                     );
-                                    if (newFilters.length) newFilters[0].concatenator = null;
+                                    if (newFilters.length) {
+                                        newFilters[0].id = uuidv4();
+                                        newFilters[0].concatenator = null;
+                                    }
                                     setFilters(newFilters);
                                 }}
                             />
