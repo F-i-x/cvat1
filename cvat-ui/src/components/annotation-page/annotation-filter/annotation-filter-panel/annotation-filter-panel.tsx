@@ -14,12 +14,30 @@ import React, {
 } from 'react';
 import { useSelector } from 'react-redux';
 import { AnnotationState, CombinedState, ShortcutsState } from 'reducers/interfaces';
+import {
+    concatenatorOptions,
+    filterByBooleanOptions,
+    filterByOptions,
+    filterByShapeOptions,
+    filterByTypeOptions,
+    operatorOptions,
+} from '../annotation-filter.const';
+import {
+    ActionType,
+    BooleanFilterByOptions,
+    ConcatenatorOptionsValues,
+    FilterByValues,
+    NumericFilterByOptions,
+    OperatorOptionsValues,
+    PixelFilterByOptions,
+    StateLevels,
+} from '../annotation-filter.enum';
 import AnnotationFilterHelp from './annotation-filter-help';
 import './annotation-filter-panel.scss';
 
 interface Props {
     editItem: any;
-    isFirst: boolean;
+    isFirst?: boolean;
     isVisible: boolean;
     onClose: Function;
     onAdd: Function;
@@ -46,137 +64,6 @@ interface MemorizedFilters {
     serverID?: string[];
     clientID?: string[];
 }
-
-enum StateLevels {
-    concatenator = 'concatenator',
-    filterBy = 'filterBy',
-    operator = 'operator',
-    value = 'value',
-    attribute = 'attribute',
-    attributeOperator = 'attributeOperator',
-    attributeValue = 'attributeValue',
-    anotherAttributeLabel = 'anotherAttributeLabel',
-    anotherAttributeValue = 'anotherAttributeValue',
-}
-
-enum ActionType {
-    concatenator,
-    filterBy,
-    operator,
-    value,
-    attribute,
-    attributeOperator,
-    attributeValue,
-    anotherAttributeLabel,
-    anotherAttributeValue,
-    fillState,
-    partialReset,
-    reset,
-}
-
-enum ConcatenatorOptionsValues {
-    or = '|',
-    and = '&',
-}
-
-enum FilterByValues {
-    label = 'label',
-    width = 'width',
-    height = 'height',
-    serverID = 'serverID',
-    clientID = 'clientID',
-    type = 'type',
-    shape = 'shape',
-    occluded = 'occluded',
-    attribute = 'attribute',
-    emptyFrame = 'empty_frame',
-}
-
-enum FilterByTypeValues {
-    shape = 'shape',
-    track = 'track',
-}
-
-enum FilterByShapeValues {
-    rectangle = 'rectangle',
-    points = 'points',
-    polyline = 'polyline',
-    polygon = 'polygon',
-    cuboids = 'cuboids',
-    tag = 'tag',
-}
-
-enum OperatorOptionsValues {
-    eq = '==',
-    neq = '!=',
-    gt = '>',
-    gte = '>=',
-    lt = '<',
-    lte = '<=',
-}
-
-enum NumericFilterByOptions {
-    width,
-    height,
-    serverID,
-    clientID,
-}
-
-enum PixelFilterByOptions {
-    width,
-    height,
-}
-
-enum BooleanFilterByOptions {
-    occluded,
-    empty_frame,
-}
-
-const concatenatorOptions: Record<string, string>[] = [
-    { label: 'and (&)', value: ConcatenatorOptionsValues.and },
-    { label: 'or (|)', value: ConcatenatorOptionsValues.or },
-];
-
-const filterByOptions: Record<string, string | FilterByValues>[] = [
-    { label: 'Label', value: FilterByValues.label },
-    { label: 'Width', value: FilterByValues.width },
-    { label: 'Height', value: FilterByValues.height },
-    { label: 'Server ID', value: FilterByValues.serverID },
-    { label: 'Client ID', value: FilterByValues.clientID },
-    { label: 'Type', value: FilterByValues.type },
-    { label: 'Shape', value: FilterByValues.shape },
-    { label: 'Occluded', value: FilterByValues.occluded },
-    { label: 'Attribute', value: FilterByValues.attribute },
-    { label: 'Empty Frame', value: FilterByValues.emptyFrame },
-];
-
-const filterByBooleanOptions: Record<string, string | boolean>[] = [
-    { label: 'True', value: true },
-    { label: 'False', value: false },
-];
-
-const filterByTypeOptions: Record<string, string>[] = [
-    { label: 'Shape', value: FilterByTypeValues.shape },
-    { label: 'Track', value: FilterByTypeValues.track },
-];
-
-const filterByShapeOptions: Record<string, string>[] = [
-    { label: 'Rectangle', value: FilterByShapeValues.rectangle },
-    { label: 'Points', value: FilterByShapeValues.points },
-    { label: 'Polyline', value: FilterByShapeValues.polyline },
-    { label: 'Polygon', value: FilterByShapeValues.polygon },
-    { label: 'Cuboids', value: FilterByShapeValues.cuboids },
-    { label: 'Tag', value: FilterByShapeValues.tag },
-];
-
-const operatorOptions: Record<string, string | boolean>[] = [
-    { label: OperatorOptionsValues.eq, value: OperatorOptionsValues.eq, any: true },
-    { label: OperatorOptionsValues.neq, value: OperatorOptionsValues.neq, any: true },
-    { label: OperatorOptionsValues.gt, value: OperatorOptionsValues.gt, any: false },
-    { label: OperatorOptionsValues.gte, value: OperatorOptionsValues.gte, any: false },
-    { label: OperatorOptionsValues.lt, value: OperatorOptionsValues.lt, any: false },
-    { label: OperatorOptionsValues.lte, value: OperatorOptionsValues.lte, any: false },
-];
 
 const reducer = (state: State, action: { type: ActionType; payload?: any }): State => {
     switch (action.type) {
