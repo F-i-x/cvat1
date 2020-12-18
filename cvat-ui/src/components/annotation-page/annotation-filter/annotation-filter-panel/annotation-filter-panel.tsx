@@ -47,15 +47,15 @@ interface MemorizedFilters {
 }
 
 enum StateLevels {
-    concatenator,
-    filterBy,
-    operator,
-    value,
-    attribute,
-    attributeOperator,
-    attributeValue,
-    anotherAttributeLabel,
-    anotherAttributeValue,
+    concatenator = 'concatenator',
+    filterBy = 'filterBy',
+    operator = 'operator',
+    value = 'value',
+    attribute = 'attribute',
+    attributeOperator = 'attributeOperator',
+    attributeValue = 'attributeValue',
+    anotherAttributeLabel = 'anotherAttributeLabel',
+    anotherAttributeValue = 'anotherAttributeValue',
 }
 
 enum ActionType {
@@ -230,9 +230,13 @@ const AnnotationFilterPanel = ({
     isFirst, isVisible, onClose, onAdd, onEdit, editItem,
 }: Props): ReactElement => {
     const [state, dispatch] = useReducer(reducer, {} as State);
+    const [isFormValid, setFormValid] = useState(false);
     const [editModeInitiated, setEditModeInitiated] = useState(false);
     const annotation: AnnotationState = useSelector((globalState: CombinedState) => globalState.annotation);
 
+    const isFilled = (fieldName: StateLevels): boolean => state[fieldName]?.toString().trim().length > 0;
+
+    // TODO: DRY
     const isAttributeFilterBy = (): boolean => FilterByValues.attribute === state.filterBy;
     const isBooleanFilterBy = (): boolean => Object.values(BooleanFilterByOptions).includes(state.filterBy);
     const isNumericFilterBy = (): boolean => Object.values(NumericFilterByOptions).includes(state.filterBy);
@@ -249,13 +253,16 @@ const AnnotationFilterPanel = ({
         localStorage.setItem('filters', JSON.stringify(filters));
     };
 
+    // TODO: DRY
     useEffect(() => {
         if (editModeInitiated) return;
         dispatch({ type: ActionType.partialReset, payload: StateLevels.concatenator });
+        if (isBooleanFilterBy()) dispatch({ type: ActionType.operator, payload: OperatorOptionsValues.eq });
     }, [state.concatenator]);
     useEffect(() => {
         if (editModeInitiated) return;
         dispatch({ type: ActionType.partialReset, payload: StateLevels.filterBy });
+        if (isBooleanFilterBy()) dispatch({ type: ActionType.operator, payload: OperatorOptionsValues.eq });
     }, [state.filterBy]);
     useEffect(() => {
         if (editModeInitiated) return;
@@ -285,6 +292,16 @@ const AnnotationFilterPanel = ({
         if (editModeInitiated) return;
         dispatch({ type: ActionType.partialReset, payload: StateLevels.anotherAttributeValue });
     }, [state.anotherAttributeValue]);
+
+    useEffect(() => {
+        let isValid = false;
+        if (isAttributeFilterBy()) {
+            // return false;
+        } else {
+            isValid = isFilled(StateLevels.filterBy) && isFilled(StateLevels.operator) && isFilled(StateLevels.value);
+        }
+        setFormValid(isFirst ? isValid : isValid && isFilled(StateLevels.concatenator));
+    }, [state]);
 
     useEffect(() => {
         setTimeout(() => {
@@ -621,7 +638,12 @@ const AnnotationFilterPanel = ({
                 )}
             </div>
             <div className='filter-action-wrapper'>
-                <Button type='primary' onClick={() => (editItem ? onEdit(state) : onAdd(state))}>
+                <Button
+                    type='primary'
+                    htmlType='submit'
+                    disabled={!isFormValid}
+                    onClick={() => (editItem ? onEdit(state) : onAdd(state))}
+                >
                     {editItem ? 'Update' : 'Add'}
                 </Button>
             </div>

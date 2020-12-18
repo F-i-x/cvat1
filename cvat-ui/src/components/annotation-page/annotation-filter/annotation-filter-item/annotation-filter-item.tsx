@@ -29,12 +29,6 @@ interface Props {
     onDelete: Function;
 }
 
-// TODO: DRY
-enum BooleanFilterByOptions {
-    occluded,
-    empty_frame,
-}
-
 enum ActionType {
     addLeft,
     addRight,
@@ -60,9 +54,6 @@ const reducer = (state: State, action: { type: ActionType; payload?: any }): Sta
 };
 function AnnotationFilterItem({ item, onEdit, onDelete }: Props): ReactElement {
     const [state, dispatch] = useReducer(reducer, item);
-
-    // TODO: DRY
-    const isBooleanFilterBy = (): boolean => Object.values(BooleanFilterByOptions).includes(item.filterBy);
 
     return (
         <>
@@ -94,8 +85,7 @@ function AnnotationFilterItem({ item, onEdit, onDelete }: Props): ReactElement {
                 }}
                 closable
             >
-                {isBooleanFilterBy() && `${state.filterBy} is "${state.value}"`}
-                {!isBooleanFilterBy() && !state.attribute && `${state.filterBy}${state.operator}"${state.value}"`}
+                {!state.attribute && `${state.filterBy}${state.operator}"${state.value}"`}
 
                 {state.attribute &&
                     !state.anotherAttributeLabel &&
