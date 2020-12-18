@@ -13,12 +13,13 @@ import React, {
     ReactElement, useEffect, useReducer, useState,
 } from 'react';
 import { useSelector } from 'react-redux';
-import { AnnotationState, CombinedState } from 'reducers/interfaces';
+import { AnnotationState, CombinedState, ShortcutsState } from 'reducers/interfaces';
+import AnnotationFilterHelp from './annotation-filter-help';
 import './annotation-filter-panel.scss';
 
 interface Props {
     editItem: any;
-    isFirst?: boolean;
+    isFirst: boolean;
     isVisible: boolean;
     onClose: Function;
     onAdd: Function;
@@ -233,6 +234,7 @@ const AnnotationFilterPanel = ({
     const [isFormValid, setFormValid] = useState(false);
     const [editModeInitiated, setEditModeInitiated] = useState(false);
     const annotation: AnnotationState = useSelector((globalState: CombinedState) => globalState.annotation);
+    const shortcuts: ShortcutsState = useSelector((globalState: CombinedState) => globalState.shortcuts);
 
     const isFilled = (fieldName: StateLevels): boolean => state[fieldName]?.toString().trim().length > 0;
 
@@ -394,7 +396,22 @@ const AnnotationFilterPanel = ({
             mask={false}
             width={300}
         >
-            <QuestionCircleOutlined className='ant-modal-help' onClick={() => alert('Help')} />
+            <QuestionCircleOutlined
+                className='ant-modal-help'
+                onClick={(e: React.MouseEvent) => {
+                    e.stopPropagation();
+                    Modal.info({
+                        width: 700,
+                        title: 'How to use filters?',
+                        content: (
+                            <AnnotationFilterHelp
+                                searchForwardShortcut={shortcuts.normalizedKeyMap.SEARCH_FORWARD}
+                                searchBackwardShortcut={shortcuts.normalizedKeyMap.SEARCH_BACKWARD}
+                            />
+                        ),
+                    });
+                }}
+            />
             {!editItem && <h3>Add new filter</h3>}
             {editItem && <h3>Update filter</h3>}
             <div className='filter-option-wrapper'>
