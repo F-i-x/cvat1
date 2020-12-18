@@ -3,15 +3,15 @@
 // SPDX-License-Identifier: MIT
 
 export enum StateLevels {
-    concatenator = 'concatenator',
-    filterBy = 'filterBy',
-    operator = 'operator',
-    value = 'value',
-    attribute = 'attribute',
-    attributeOperator = 'attributeOperator',
-    attributeValue = 'attributeValue',
-    anotherAttributeLabel = 'anotherAttributeLabel',
-    anotherAttributeValue = 'anotherAttributeValue',
+    concatenator,
+    filterBy,
+    operator,
+    value,
+    attribute,
+    attributeOperator,
+    attributeValue,
+    anotherAttributeLabel,
+    anotherAttributeValue,
 }
 
 export enum ActionType {
@@ -85,4 +85,16 @@ export enum PixelFilterByOptions {
 export enum BooleanFilterByOptions {
     occluded,
     empty_frame,
+}
+
+export enum StateFields {
+    concatenator = 'concatenator',
+    filterBy = 'filterBy',
+    operator = 'operator',
+    value = 'value',
+    attribute = 'attribute',
+    attributeOperator = 'attributeOperator',
+    attributeValue = 'attributeValue',
+    anotherAttributeLabel = 'anotherAttributeLabel',
+    anotherAttributeValue = 'anotherAttributeValue',
 }

@@ -30,6 +30,7 @@ import {
     NumericFilterByOptions,
     OperatorOptionsValues,
     PixelFilterByOptions,
+    StateFields,
     StateLevels,
 } from '../annotation-filter.enum';
 import AnnotationFilterHelp from './annotation-filter-help';
@@ -57,12 +58,6 @@ interface State {
     anotherAttributeValue: string;
     left: string[];
     right: string[];
-}
-interface MemorizedFilters {
-    width?: string[];
-    height?: string[];
-    serverID?: string[];
-    clientID?: string[];
 }
 
 const reducer = (state: State, action: { type: ActionType; payload?: any }): State => {
@@ -123,7 +118,7 @@ const AnnotationFilterPanel = ({
     const annotation: AnnotationState = useSelector((globalState: CombinedState) => globalState.annotation);
     const shortcuts: ShortcutsState = useSelector((globalState: CombinedState) => globalState.shortcuts);
 
-    const isFilled = (fieldName: StateLevels): boolean => state[fieldName]?.toString().trim().length > 0;
+    const isFilled = (fieldName: StateFields): boolean => state[fieldName]?.toString().trim().length > 0;
 
     // TODO: DRY
     const isAttributeFilterBy = (): boolean => FilterByValues.attribute === state.filterBy;
@@ -131,9 +126,14 @@ const AnnotationFilterPanel = ({
     const isNumericFilterBy = (): boolean => Object.values(NumericFilterByOptions).includes(state.filterBy);
     const isPixelFilterBy = (): boolean => Object.values(PixelFilterByOptions).includes(state.filterBy);
 
-    const getMemorizedFilters = (): MemorizedFilters => JSON.parse(localStorage.getItem('filters') ?? '{}');
+    const getMemorizedFilterOptions = (): any[] => {
+        const memorizedFilters = JSON.parse(localStorage.getItem('filters') ?? '{}');
+        const memorizedFilterOptions: string[] = memorizedFilters[state.filterBy] ?? [];
+        return memorizedFilterOptions.map((mf: string) => ({ label: mf, value: mf }));
+    };
+
     const setMemorizedFilters = (): void => {
-        const filters = { ...getMemorizedFilters() };
+        const filters = JSON.parse(localStorage.getItem('filters') ?? '{}');
         filters[state.filterBy] = [state.value, ...(filters[state.filterBy] ?? [])];
         filters[state.filterBy] = filters[state.filterBy]
             .filter((value: string) => value)
@@ -183,13 +183,23 @@ const AnnotationFilterPanel = ({
     }, [state.anotherAttributeValue]);
 
     useEffect(() => {
-        let isValid = false;
+        let isValid = isFilled(StateFields.filterBy) && isFilled(StateFields.value);
         if (isAttributeFilterBy()) {
-            // return false;
+            isValid =
+                isValid &&
+                isFilled(StateFields.attribute) &&
+                isFilled(StateFields.attributeOperator) &&
+                isFilled(StateFields.attributeValue);
+            if (state.attributeValue === 'anotherAttribute') {
+                isValid =
+                    isValid &&
+                    isFilled(StateFields.anotherAttributeLabel) &&
+                    isFilled(StateFields.anotherAttributeValue);
+            }
         } else {
-            isValid = isFilled(StateLevels.filterBy) && isFilled(StateLevels.operator) && isFilled(StateLevels.value);
+            isValid = isValid && isFilled(StateFields.operator);
         }
-        setFormValid(isFirst ? isValid : isValid && isFilled(StateLevels.concatenator));
+        setFormValid(isFirst ? isValid : isValid && isFilled(StateFields.concatenator));
     }, [state]);
 
     useEffect(() => {
@@ -376,9 +386,10 @@ const AnnotationFilterPanel = ({
                                 <div className='filter-option-value'>
                                     <AutoComplete
                                         className='numeric-autocomplete'
-                                        dataSource={getMemorizedFilters()[state.filterBy] ?? []}
+                                        // options={[{ label: '88', value: '88' }, { label: '99', value: '99' }]}
+                                        options={getMemorizedFilterOptions()}
                                         filterOption={(inputValue, option) =>
-                                            `${option?.props.children}`.indexOf(inputValue) >= 0}
+                                            `${option?.value}`.indexOf(inputValue) >= 0}
                                         onChange={(value: SelectValue) =>
                                             dispatch({ type: ActionType.value, payload: value })}
                                         placeholder=''

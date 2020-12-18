@@ -15,8 +15,9 @@ import './annotation-filter-pane.scss';
 const AnnotationFilterPane = (): ReactElement => {
     const [editItem, setEditItem] = useState();
     const [filters, setFilters] = useState([] as any);
-    const [filterPanelVisible, setFilterPanelVisible] = useState(true);
+    const [filterPanelVisible, setFilterPanelVisible] = useState(false);
 
+    const filtersPaneRef = useRef<null | HTMLDivElement>(null);
     const filtersEndRef = useRef<null | HTMLDivElement>(null);
     const clearFiltersRef = useRef<null | HTMLAnchorElement>(null);
 
@@ -66,8 +67,14 @@ const AnnotationFilterPane = (): ReactElement => {
     return (
         <>
             <div
+                ref={filtersPaneRef}
                 className='annotation-filters-pane'
-                onClick={() => !filters.length && setFilterPanelVisible(true)}
+                onClick={() => {
+                    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+                    filters.length && console.log(filtersPaneRef.current?.innerText.replace(/(?:\r\n|\r|\n)/g, '')); // TMP
+                    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+                    !filters.length && setFilterPanelVisible(true);
+                }}
                 style={{ cursor: filters.length ? 'default' : 'pointer' }}
                 onContextMenu={(e: React.MouseEvent<HTMLElement, MouseEvent>) => confirmClearFilters(e)}
             >

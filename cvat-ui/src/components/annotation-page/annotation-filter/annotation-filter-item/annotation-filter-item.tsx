@@ -62,6 +62,7 @@ function AnnotationFilterItem({ item, onEdit, onDelete }: Props): ReactElement {
             <Tag
                 className='annotation-filters-item'
                 onClick={(e: React.MouseEvent<HTMLSpanElement, MouseEvent>) => {
+                    e.stopPropagation();
                     if (e.shiftKey) {
                         dispatch({ type: ActionType.addLeft });
                     } else if (e.altKey) {
